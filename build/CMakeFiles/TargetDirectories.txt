@@ -1,0 +1,3 @@
+/Users/raymondpark/Desktop/music_software/template calc/build/CMakeFiles/run.dir
+/Users/raymondpark/Desktop/music_software/template calc/build/CMakeFiles/edit_cache.dir
+/Users/raymondpark/Desktop/music_software/template calc/build/CMakeFiles/rebuild_cache.dir

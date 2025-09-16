@@ -1,46 +1,15 @@
 #include <iostream>
 #include <type_traits>
+#include "boost/mp11.hpp"
+#include "myfolder/digits.hpp"
 #include <queue>
 
-//digits
-struct Digit {
-
-};
-struct Zero : public Digit  {
-    using num = int;
-};
-struct One : public Digit  {
-    using num = int;
+template <typename T, typename U>
+struct Sum {
+    using Carry = std::conditional_t<std::is_same_v<U, One>, One, Zero>;
+    using Remainder = T;
 };
 
-struct Two : public Digit {
-    using num = std::queue<int>;
-};
-
-struct Three : public Digit {
-    using num = int;
-};
-
-struct Four : public Digit {
-    using num = int;
-};
-
-struct Five : public Digit {
-    using num = int;
-};
-
-struct Six : public Digit {
-    using num = int;
-};
-struct Seven : public Digit {
-    using num = int;
-};
-struct Eight : public Digit {
-    using num = int;
-};
-struct Nine : public Digit{
-    using num = int;
-};
 template <typename T, typename = void>
 struct is_digit : std::false_type {};
 
@@ -54,19 +23,19 @@ struct Add : public Operation {
     template <typename T, typename U>
     static auto add(T one, U two) {
         if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Zero>) {
-            return new One();
+            return new Sum<One, Zero>;
         }
         if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), One>) {
-            return new Two();
+            return new Sum<Two, Zero>;
         }
         else if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Two>) {
-            return new Three();
+            return new Sum<Three, Zero>;
         }
         else if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Three>) {
-            return new Four();
+            return new Sum<Four, Zero>;
         }
         else if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Nine>) {
-            return new Zero();
+            return new Sum<One, Zero>;
         }
     }  
 };
@@ -77,12 +46,20 @@ auto arthimetic(Args&&... args) {
         return Add::add(std::forward<Args>(args)...);
     }
 }
+using namespace boost::mp11;
+
 int main() {
     One one;
     One one1;
     Two two;
     Three three;
+    // Use Boost to store the digits of two numbers
+    using number1 = mp_list<One, Two, Three>;
+    
+
+    // 3. Access by index
+    static_assert(std::is_same_v<mp_at_c<number1, 0>, One>);
+    static_assert(std::is_same_v<mp_at_c<my_types, 1>, Two>);
     auto d = arthimetic<Add>(one, two);
-    static_assert(std::is_same_v<Three*, decltype(d)>);
     static_assert(is_digit<One>::value);
 }
