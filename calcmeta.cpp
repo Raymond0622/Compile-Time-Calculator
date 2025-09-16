@@ -81,6 +81,7 @@ int main() {
     One one;
     One one1;
     Two two;
+    Three three;
     auto d = arthimetic<Add>(one, two);
     static_assert(std::is_same_v<Three*, decltype(d)>);
     static_assert(is_digit<One>::value);
