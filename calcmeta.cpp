@@ -4,6 +4,7 @@
 #include "boost/mp11/algorithm.hpp"
 #include "boost/type_index.hpp"
 #include "boost/mp11/utility.hpp"
+#include "boost/mp11.hpp"
 #include "myfolder/digits.hpp"
 #include <typeinfo>
 #include <queue>
@@ -12,7 +13,14 @@ template <typename T, typename U>
 struct Sum {
     using Carry = std::conditional_t<std::is_same_v<U, One>, One, Zero>;
     using Remainder = T;
+    void summer() {};
 };
+
+template <typename, typename = void>
+struct is_sum : std::false_type {};
+
+template <typename T, typename U>
+struct is_sum<Sum<T, U>, std::void_t<decltype(std::declval<Sum<T, U>>().summer())>> : std::true_type {};
 
 template <typename T, typename = void>
 struct is_digit : std::false_type {};
@@ -95,29 +103,63 @@ auto carryOne(T digit) {
 using namespace boost::mp11;
 
 int main() {
-    // One one;
-    // One one1;
-    // Two two;
-    // Three three;
     // Use Boost to store the digits of two numbers
-    using number1 = mp_list<One, One>;
-    using number2 = mp_list<Nine, Two>;
-    using zipped_numbers = mp_transform<mp_list, number1, number2>;
-
-    mp_for_each<zipped_numbers>([](auto t) 
-    {
-        using digit1 = mp_at_c<decltype(t), 0>;
-        using digit2 = mp_at_c<decltype(t), 1>;
-        digit1 d1;
-        digit2 d2;
-        if constexpr (std::is_same_v<typename res::Carry, One>) {
-            using n_digit1 = decltype(carryOne(d1));
+    using number1 = mp_list<One, One, One>;
+    using number2 = mp_list<Nine, Nine, Zero>;
+    using index = mp_iota_c<3>;
+    using zipped_numbers = mp_transform<mp_list, number1, number2, index>;
+    mp_for_each<zipped_numbers>([](auto t){
+        using curr = decltype(t);
+        constexpr size_t i = mp_at_c<curr, 2>::value;
+        using res = 
+        std::conditional_t<i != 0, 
+            decltype([&]() {
+                using prev = mp_at_c<zipped_numbers, i - 1>;
+                using digit1_prev = mp_at_c<curr, 0>;
+                using digit2_prev = mp_at_c<curr, 1>;
+                digit1_prev d1_prev;
+                digit2_prev d2_prev;
+                using res = std::remove_pointer_t<decltype(arthimetic<Add>(std::move(d1_prev), std::move(d2_prev)))>;
+                res r;
+                std::cout << i << "carry" << std::endl;
+                print(std::move(r));
+                return std::move(r);
+               
+            }), int>;
+        if constexpr (is_sum<res>::value) {
+            std::cout << i << " " << "is a res" << std::endl;
         }
-        using res = std::remove_pointer_t<decltype(arthimetic<Add>(std::move(d1), std::move(d2)))>;
-        
-        res r;
-        print(std::move(r));
+
+        //std::conditional_t<std::is_same_v<res, Sum<
+        //     using digit1 = decltype(carryOne(new mp_at_c<curr, 0> d1));
+        // }
+        // else {
+        //     using digit1 = mp_at_c<curr, 0>;
+        // }
+        // using digit2 = mp_at_c<curr, 1>;
+        // digit2 d2;
+        // digit1 d1;
+        // curr_res = std::remove_pointer_t<decltype(arthimetic<Add>(std::move(d1), std::move(d2)))>;
     });
+
+    // mp_for_each<mp_iota_c<5>>([](auto I){
+    //     constexpr std::size_t idx = decltype(I)::value;
+    //     std::cout << idx << " ";   // prints 0 1 2 3 4
+    // });
+
+    // mp_with_index<mp_size<zipped_numbers>::value>([](auto index) 
+    // {
+    //     constexpr size_t i = decltype(index)::value;
+    //     std::cout << i << std::endl;
+    //     // using digit1 = mp_at_c<decltype(t), 0>;
+    //     // using digit2 = mp_at_c<decltype(t), 1>;
+    //     // digit1 d1;
+    //     // digit2 d2;
+    //     // using res = std::remove_pointer_t<decltype(arthimetic<Add>(std::move(d1), std::move(d2)))>;
+        
+    //     // res r;
+    //     // print(std::move(r));
+    // });
     
 
     // // 3. Access by index
