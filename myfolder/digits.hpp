@@ -1,44 +1,39 @@
 #ifndef DIGITS_HPP
 #define DIGITS_HPP
-#include <queue>
-
-struct Digit {
-
-};
+struct Digit {};
 struct Zero : public Digit  {
-    using num = int;
+    using D = Zero;
 };
 struct One : public Digit  {
-    using num = int;
+    using D = One;
 };
 
 struct Two : public Digit {
-    using num = std::queue<int>;
+    using D = Two;
 };
 
 struct Three : public Digit {
-    using num = int;
+    using D = Three;
 };
 
 struct Four : public Digit {
-    using num = int;
+    using D = Four;
 };
-
 struct Five : public Digit {
-    using num = int;
+    using D = Five;
 };
 
 struct Six : public Digit {
-    using num = int;
+    using D = Six;
 };
 struct Seven : public Digit {
-    using num = int;
+    using D = Seven;
 };
 struct Eight : public Digit {
-    using num = int;
+    using D = Eight;
 };
 struct Nine : public Digit{
-    using num = int;
+    using D = Nine;
 };
 
 #endif

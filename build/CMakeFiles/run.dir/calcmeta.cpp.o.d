@@ -811,5 +811,7 @@ CMakeFiles/run.dir/calcmeta.cpp.o: \
   /opt/homebrew/opt/boost/include/boost/mp11/lambda.hpp \
   /opt/homebrew/opt/boost/include/boost/mp11/tuple.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/myfolder/digits.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/myfolder/SumResult.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/myfolder/Carry.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/queue \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/deque

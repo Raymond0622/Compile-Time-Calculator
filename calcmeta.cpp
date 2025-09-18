@@ -6,89 +6,106 @@
 #include "boost/mp11/utility.hpp"
 #include "boost/mp11.hpp"
 #include "myfolder/digits.hpp"
+#include "myfolder/SumResult.hpp"
+#include "myfolder/Carry.hpp"
 #include <typeinfo>
 #include <queue>
 
-template <typename T, typename U>
-struct Sum {
-    using Carry = std::conditional_t<std::is_same_v<U, One>, One, Zero>;
-    using Remainder = T;
-    void summer() {};
-};
-
-template <typename, typename = void>
-struct is_sum : std::false_type {};
-
-template <typename T, typename U>
-struct is_sum<Sum<T, U>, std::void_t<decltype(std::declval<Sum<T, U>>().summer())>> : std::true_type {};
+using namespace boost::mp11;
 
 template <typename T, typename = void>
 struct is_digit : std::false_type {};
 
 template <typename T>
-struct is_digit<T, std::void_t<typename T::num>> : std::true_type {};
+struct is_digit<T, std::void_t<typename T::c>> : std::true_type {};
 
-struct Operation {
-    using ops = std::vector<int>;
-};
-struct Add : public Operation {
-    template <typename T, typename U>
-    static auto add(T one, U two) {
-        if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Zero>) {
-            return new Sum<One, Zero>;
-        }
-        else if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Nine>) {
-            return new Sum<Zero, One>;
-        }
-        else if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Two>) {
-            return new Sum<Three, Zero>;
-        }
-        else if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Three>) {
-            return new Sum<Four, Zero>;
-        }
-        else if constexpr (std::is_same_v<decltype(one), One> && std::is_same_v<decltype(two), Nine>) {
-            return new Sum<One, Zero>;
-        }
-    }  
+template <typename D1, typename D2>
+struct add_digit {
+    static_assert(std::is_base_of_v<Digit, D1> && 
+        std::is_base_of_v<Digit, D2>, "not a digit");
+    using curr = AddDigits<D1, D2>;
 };
 
-template <typename Ops, typename... Args>
-auto arthimetic(Args&&... args) {
-    if constexpr (std::is_same_v<Ops, Add>) {
-        return Add::add(std::forward<Args>(args)...);
-    }
-}
-template <typename T, typename U, template <typename, typename> class Sum>
-void print(Sum<T, U> sum) {
+template <typename T>
+struct is_mp_list : std::false_type {};
+
+template <typename... Ts>
+struct is_mp_list<mp_list<Ts...>> : std::true_type {};
+
+
+template <typename T>
+struct flatten {};
+
+template <typename T>
+struct flatten<mp_list<T>> {
+    using res = mp_list<T>;
+};
+
+template <typename First, typename... Rest>
+struct flatten<mp_list<First, Rest...>> {
+    //using first = std::conditional_t<is_mp_list<First>::value, typename flatten<First>::res, mp_list<First>>;
+    using first = mp_list<First>;
+    //static_assert(is_mp_list<first>::value);
+    using rest = typename flatten<Rest...>::res;
+    static_assert(is_mp_list<rest>::value);
+    using res = mp_append<first, rest>;
+};
+
+
+template <typename T, typename U, typename = void>
+struct Add {};
+
+template <typename T, typename U, typename Carry>
+struct Add<mp_list<T>, mp_list<U>, Carry> {
+    //static_assert(std::is_same_v<Carry, One>);
+    using D1_carry = std::conditional_t<std::is_same_v<Carry, One>, Carried<T>, typename T::D>;
+    using curr = typename add_digit<typename D1_carry::D, U>::curr::type;
+    using rest = std::conditional_t<std::is_same_v<typename curr::Carry, One>, One, Zero>;
+    using ans = std::conditional_t<std::is_same_v<rest, One>, 
+        mp_list<typename curr::Remainder, mp_list<rest>>, mp_list<typename curr::Remainder>> ;
+};
+
+template <typename D1, typename... D1s, template <typename...> class Number1, 
+          typename D2, typename... D2s, template <typename...> class Number2, typename Carry>
+struct Add<Number1<D1, D1s...>, Number2<D2, D2s...>, Carry> {
+    using D1_carry = std::conditional_t<std::is_same_v<Carry, One>, Carried<D1>, typename D1::D>;
+    using curr = typename add_digit<typename D1_carry::D, D2>::curr::type;
+    //static_assert(std::is_same_v<curr, Sum<Zero, One>>);
+    using rest = Add<Number1<D1s...>, Number2<D2s...>, typename curr::Carry>;
+    using ans = mp_list<typename curr::Remainder, typename rest::ans>;
+};
+
+template <typename T>
+void print(T sum) {
     if constexpr (std::is_same_v<One, T>) {
-        std::cout << "1" << std::endl;
+        std::cout << "1";
     }
     else if constexpr (std::is_same_v<Two, T>) {
-        std::cout << "2" << std::endl;
+        std::cout << "2";
     }
     else if constexpr (std::is_same_v<Three, T>) {
-        std::cout << "3" << std::endl;
+        std::cout << "3";
     }
     else if constexpr (std::is_same_v<Four, T>) {
-        std::cout << "4" << std::endl;
+        std::cout << "4";
     }
     else if constexpr (std::is_same_v<Five, T>) {
-        std::cout << "5" << std::endl;
+        std::cout << "5";
     }
     else if constexpr (std::is_same_v<Six, T>) {
-        std::cout << "6" << std::endl;
+        std::cout << "6";
     }
     else if constexpr (std::is_same_v<Seven, T>) {
-        std::cout << "7" << std::endl;
+        std::cout << "7";
     }
     else if constexpr (std::is_same_v<Eight, T>) {
-        std::cout << "8" << std::endl;
+        std::cout << "8";
     }
     else if constexpr (std::is_same_v<Nine, T>) {
-        std::cout << "9" << std::endl;
+        std::cout << "9";
     }
     else {
-        std::cout << "0" << std::endl;
+        std::cout << "0";
     }
 }
 template <typename T>
@@ -100,69 +117,16 @@ auto carryOne(T digit) {
         return new Two();
     } 
 }
-using namespace boost::mp11;
 
 int main() {
     // Use Boost to store the digits of two numbers
-    using number1 = mp_list<One, One, One>;
-    using number2 = mp_list<Nine, Nine, Zero>;
-    using index = mp_iota_c<3>;
-    using zipped_numbers = mp_transform<mp_list, number1, number2, index>;
-    mp_for_each<zipped_numbers>([](auto t){
-        using curr = decltype(t);
-        constexpr size_t i = mp_at_c<curr, 2>::value;
-        using res = 
-        std::conditional_t<i != 0, 
-            decltype([&]() {
-                using prev = mp_at_c<zipped_numbers, i - 1>;
-                using digit1_prev = mp_at_c<curr, 0>;
-                using digit2_prev = mp_at_c<curr, 1>;
-                digit1_prev d1_prev;
-                digit2_prev d2_prev;
-                using res = std::remove_pointer_t<decltype(arthimetic<Add>(std::move(d1_prev), std::move(d2_prev)))>;
-                res r;
-                std::cout << i << "carry" << std::endl;
-                print(std::move(r));
-                return std::move(r);
-               
-            }), int>;
-        if constexpr (is_sum<res>::value) {
-            std::cout << i << " " << "is a res" << std::endl;
-        }
-
-        //std::conditional_t<std::is_same_v<res, Sum<
-        //     using digit1 = decltype(carryOne(new mp_at_c<curr, 0> d1));
-        // }
-        // else {
-        //     using digit1 = mp_at_c<curr, 0>;
-        // }
-        // using digit2 = mp_at_c<curr, 1>;
-        // digit2 d2;
-        // digit1 d1;
-        // curr_res = std::remove_pointer_t<decltype(arthimetic<Add>(std::move(d1), std::move(d2)))>;
+    using number1 = mp_list<One, Zero, One>;
+    using number2 = mp_list<Nine, One, One>;
+    using result = typename Add<number1, number2, Zero>::ans;
+    using ans = flatten<result>::res;
+    constexpr size_t i = mp_size<ans>::value;
+    std::cout << i << std::endl;
+    mp_for_each<ans>([](auto d) {
+        print(d);
     });
-
-    // mp_for_each<mp_iota_c<5>>([](auto I){
-    //     constexpr std::size_t idx = decltype(I)::value;
-    //     std::cout << idx << " ";   // prints 0 1 2 3 4
-    // });
-
-    // mp_with_index<mp_size<zipped_numbers>::value>([](auto index) 
-    // {
-    //     constexpr size_t i = decltype(index)::value;
-    //     std::cout << i << std::endl;
-    //     // using digit1 = mp_at_c<decltype(t), 0>;
-    //     // using digit2 = mp_at_c<decltype(t), 1>;
-    //     // digit1 d1;
-    //     // digit2 d2;
-    //     // using res = std::remove_pointer_t<decltype(arthimetic<Add>(std::move(d1), std::move(d2)))>;
-        
-    //     // res r;
-    //     // print(std::move(r));
-    // });
-    
-
-    // // 3. Access by index
-    // auto d = arthimetic<Add>(one, two);
-    // static_assert(is_digit<One>::value);
 }
