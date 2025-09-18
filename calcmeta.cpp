@@ -108,25 +108,26 @@ void print(T sum) {
         std::cout << "0";
     }
 }
-template <typename T>
-auto carryOne(T digit) {
-    if constexpr (std::is_same_v<T, Zero>) {
-        return new One();
-    }
-    else if constexpr (std::is_same_v<T, One>) {
-        return new Two();
-    } 
-}
 
 int main() {
     // Use Boost to store the digits of two numbers
-    using number1 = mp_list<One, Zero, One>;
-    using number2 = mp_list<Nine, One, One>;
+    using number1 = mp_list<One, Zero, Eight, Three>;
+    using number2 = mp_list<Nine, One, Eight, Four>;
     using result = typename Add<number1, number2, Zero>::ans;
     using ans = flatten<result>::res;
-    constexpr size_t i = mp_size<ans>::value;
-    std::cout << i << std::endl;
-    mp_for_each<ans>([](auto d) {
+    //constexpr size_t i = mp_size<ans>::value;
+    //std::cout << i << std::endl;
+
+    mp_for_each<mp_reverse<number1>>([] (auto d) {
+        print(d);
+    });
+    std::cout << " + ";
+    mp_for_each<mp_reverse<number2>>([] (auto d) {
+        print(d);
+    });
+    std::cout << " = ";
+    // Print out the results
+    mp_for_each<mp_reverse<ans>>([](auto d) {
         print(d);
     });
 }

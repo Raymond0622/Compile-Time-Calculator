@@ -14,46 +14,10 @@ template <typename T, typename U>
 struct is_sum<Sum<T, U>, std::void_t<decltype(std::declval<Sum<T, U>>().summer())>> : std::true_type {};
 
 template <typename D1, typename D2>
-struct AddDigits; // primary template
+struct AddDigits {
+    static constexpr int sum = D1::val + D2::val;
+    static constexpr int rem = sum % 10;
+    static constexpr int carry = sum / 10;
 
-template <>
-struct AddDigits<One, One> {
-    using type = Sum<Two, Zero>;
-};
-
-template <>
-struct AddDigits<One, Two> {
-    using type = Sum<Three, Zero>;
-};
-template <>
-struct AddDigits<One, Three> {
-    using type = Sum<Four, Zero>;
-};
-
-template <>
-struct AddDigits<One, Four> {
-    using type = Sum<Five, Zero>;
-};
-template <>
-struct AddDigits<One, Five> {
-    using type = Sum<Six, Zero>;
-};
-
-template <>
-struct AddDigits<One, Six> {
-    using type = Sum<Seven, Zero>;
-};
-template <>
-struct AddDigits<One, Seven> {
-    using type = Sum<Eight, Zero>;
-};
-
-template <>
-struct AddDigits<One, Eight> {
-    using type = Sum<Nine, Zero>;
-};
-
-template <>
-struct AddDigits<One, Nine> {
-    using type = Sum<Zero, One>;
+    using type = Sum<typename convertIntDigit<rem>::D, typename convertIntDigit<carry>::D>;
 };
