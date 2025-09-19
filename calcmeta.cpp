@@ -60,7 +60,9 @@ struct Add<mp_list<T>, mp_list<U>, Carry> {
     //static_assert(std::is_same_v<Carry, One>);
     using D1_carry = std::conditional_t<std::is_same_v<Carry, One>, Carried<T>, typename T::D>;
     using curr = typename add_digit<typename D1_carry::D, U>::curr::type;
-    using rest = std::conditional_t<std::is_same_v<typename curr::Carry, One>, One, Zero>;
+    using c = std::conditional_t<is_carry<D1_carry>::value, typename D1_carry::carry, Zero>;
+    using rest = std::conditional_t<std::is_same_v<c, One> || 
+        std::is_same_v<typename curr::Carry, One>, One, Zero>;
     using ans = std::conditional_t<std::is_same_v<rest, One>, 
         mp_list<typename curr::Remainder, mp_list<rest>>, mp_list<typename curr::Remainder>> ;
 };
@@ -71,7 +73,11 @@ struct Add<Number1<D1, D1s...>, Number2<D2, D2s...>, Carry> {
     using D1_carry = std::conditional_t<std::is_same_v<Carry, One>, Carried<D1>, typename D1::D>;
     using curr = typename add_digit<typename D1_carry::D, D2>::curr::type;
     //static_assert(std::is_same_v<curr, Sum<Zero, One>>);
-    using rest = Add<Number1<D1s...>, Number2<D2s...>, typename curr::Carry>;
+    using c = std::conditional_t<is_carry<D1_carry>::value, typename D1_carry::carry, Zero>;
+    
+    using rest = Add<Number1<D1s...>, Number2<D2s...>, 
+        std::conditional_t<std::is_same_v<c, One> || 
+        std::is_same_v<typename curr::Carry, One>, One, Zero>>;
     using ans = mp_list<typename curr::Remainder, typename rest::ans>;
 };
 
@@ -111,8 +117,8 @@ void print(T sum) {
 
 int main() {
     // Use Boost to store the digits of two numbers
-    using number1 = mp_list<One, Zero, Eight, Three>;
-    using number2 = mp_list<Nine, One, Eight, Four>;
+    using number1 = mp_list<One, Nine, Eight, Nine>;
+    using number2 = mp_list<One, Nine, Nine, Four>;
     using result = typename Add<number1, number2, Zero>::ans;
     using ans = flatten<result>::res;
     //constexpr size_t i = mp_size<ans>::value;

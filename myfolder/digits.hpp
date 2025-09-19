@@ -1,7 +1,9 @@
 #ifndef DIGITS_HPP
 #define DIGITS_HPP
 
-struct Digit {};
+struct Digit {
+    using carry = int;
+};
 
 struct Zero : public Digit  {
     using D = Zero;

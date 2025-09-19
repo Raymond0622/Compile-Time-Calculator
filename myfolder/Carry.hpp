@@ -1,4 +1,5 @@
 #include "digits.hpp"
+
 template <typename T>
 struct Carried {};
 
@@ -61,3 +62,9 @@ struct Carried<Nine> {
     using D = Zero;
     using carry = One;
 };
+
+template <typename T>
+struct is_carry : std::false_type {};
+
+template <typename T>
+struct is_carry<Carried<T>> : std::true_type {};
