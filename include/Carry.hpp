@@ -1,4 +1,5 @@
-#include "digits.hpp"
+#ifndef CARRY_HPP
+#define CARRY_HPP
 
 template <typename T>
 struct Carried {};
@@ -68,3 +69,5 @@ struct is_carry : std::false_type {};
 
 template <typename T>
 struct is_carry<Carried<T>> : std::true_type {};
+
+#endif

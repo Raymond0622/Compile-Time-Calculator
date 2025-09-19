@@ -1,8 +1,8 @@
-#include <type_traits>
-#include "digits.hpp"
+#ifndef SUM_HPP
+#define SUM_HPP
 template <typename T, typename U>
 struct Sum {
-    using Carry = std::conditional_t<std::is_same_v<U, One>, One, Zero>;
+    using Carry = U;
     using Remainder = T;
     void summer() {};
 };
@@ -21,3 +21,14 @@ struct AddDigits {
 
     using type = Sum<typename convertIntDigit<rem>::D, typename convertIntDigit<carry>::D>;
 };
+
+template <typename D1, typename D2>
+struct MultiplyDigits {
+    static constexpr int sum = D1::val * D2::val;
+    static constexpr int rem = sum % 10;
+    static constexpr int carry = sum / 10;
+
+    using type = Sum<typename convertIntDigit<rem>::D, typename convertIntDigit<carry>::D>;
+};
+
+#endif

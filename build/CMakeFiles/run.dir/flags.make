@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/opt/homebrew/opt/boost/include
+CXX_INCLUDES = -I/opt/homebrew/opt/boost/include -I"/Users/raymondpark/Desktop/music_software/template calc/include"
 
 CXX_FLAGSarm64 = -std=gnu++20 -arch arm64
 
