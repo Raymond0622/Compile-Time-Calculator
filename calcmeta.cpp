@@ -130,38 +130,31 @@ struct RecursiveAdd {};
 template <typename... D1s, template <typename...> class Number1, 
         typename... D2s, template <typename...> class Number2>
 struct RecursiveAdd<mp_list<Number1<D1s...>, Number2<D2s...>>>{
-     using a = std::conditional_t<(mp_size<Number1<D1s...>>::value < mp_size<Number2<D2s...>>::value), 
-     mp_append<mp_repeat_c<mp_list<Zero>, mp_size<Number2<D2s...>>::value - mp_size<Number1<D1s...>>::value>, 
-     Number1<D1s...>>, 
-    // mp_append<mp_repeat_c<mp_list<Zero>, mp_size<Number1<D1s...>>::value - mp_size<Number2<D2s...>>::value>, Number2<D2s...>>>;
-    // using ans = std::conditional_t<mp_size<Number1<D1s...>>::value < mp_size<Number2<D2s...>>::value, 
-    //     typename flatten<typename Add<a, Number2<D2s...>, Zero>::ans>::res, 
-    //     typename flatten<typename Add<Number1<D1s...>, a, Zero>::ans>::res>;
+    // utilize the fact that size of Number1 <= Number 2
+    using a = mp_append<Number1<D1s...>, mp_repeat_c<mp_list<Zero>, mp_size<Number2<D2s...>>::value - mp_size<Number1<D1s...>>::value>>;
+    using ans = typename flatten<typename Add<a, Number2<D2s...>, Zero>::ans>::res;
 };
 
 template <typename... D1s, template <typename...> class Number1, 
         typename... D2s, template <typename...> class Number2, typename... Ts> 
 struct RecursiveAdd<mp_list<Number1<D1s...>, Number2<D2s...>, Ts...>>{
-    using a = std::conditional_t<mp_size<Number1<D1s...>>::value < mp_size<Number2<D2s...>>::value, mp_append<mp_repeat_c<mp_list<Zero>, mp_size<Number2<D2s...>>::value - mp_size<Number1<D1s...>>::value>, Number1<D1s...>>, 
-        mp_append<mp_repeat_c<mp_list<Zero>, mp_size<Number1<D1s...>>::value - mp_size<Number1<D1s...>>::value>, Number2<D2s...>>>;
-    using res = std::conditional_t<mp_size<Number2<D1s...>>::value < mp_size<Number1<D2s...>>::value, 
-         typename flatten<typename Add<a, Number2<D2s...>, Zero>::ans>::res, 
-         typename flatten<typename Add<Number1<D1s...>, a, Zero>::ans>::res>;
+    // utilize the fact that size of Number1 <= Number 2
+    using a = mp_append<Number1<D1s...>, mp_repeat_c<mp_list<Zero>, mp_size<Number2<D2s...>>::value - mp_size<Number1<D1s...>>::value>>;
+    using res = typename flatten<typename Add<a, Number2<D2s...>, Zero>::ans>::res; 
     using ans = typename RecursiveAdd<mp_list<res, Ts...>>::ans;
 };
 
 int main() {
-    // Use Boost to store the digits of two numbers, number1 >= number2 requirement
+    // Use Boost to store the digits of two numbers, number1 >= number2 requirement (for addition only)
     using number1 = mp_list<One, Two, Three, Four>;
-    using number2 = mp_list<Four, Three>;
+    using number2 = mp_list<Four, Three, Five, Six, Seven, Four>;
     constexpr size_t n1 = mp_size<number1>::value;
     constexpr size_t n2 = mp_size<number2>::value;
-    //static_assertmp_size<number1>::value < mp_size<number2>::value>);
 
     //using num2 = mp_append<number2, mp_repeat_c<mp_list<Zero>, n1 - n2>>;
     //using num1 = number1;
     //constexpr size_t n3 = mp_size<num2>::value;
-    using ans = typename Multiply<number1, number2, 0>::ans;
+    using ans = typename Multiply<mp_reverse<number1>, mp_reverse<number2>, 0>::ans;
     //std::cout << mp_size<ans>::value;
     
     // mp_for_each<mp_reverse<number1>>([] (auto d) {
@@ -173,21 +166,21 @@ int main() {
     // });
     // std::cout << " = ";
     // // Print out the results
-    using final = typename RecursiveAdd<ans>::a;
+    using final = typename RecursiveAdd<ans>::ans;
 
-    // mp_for_each<ans>([](auto I) {
-    //     mp_for_each<mp_reverse<decltype(I)>>([](auto d) {
-    //        print(d);
+    mp_for_each<ans>([](auto I) {
+        mp_for_each<mp_reverse<decltype(I)>>([](auto d) {
+           print(d);
            
-    //  });
-    //  std::cout << ' ' << std::endl;
-    // });
+     });
+     std::cout << ' ' << std::endl;
+    });
     // // using t = typename RecursiveAdd<ans>::a;
     // // mp_for_each<t>([] (auto I) {
     // //     print(I);
     // // });
 
-    // mp_for_each<mp_reverse<final>>([](auto I) {   
-    //     print(I);        
-    //  });
+    mp_for_each<mp_reverse<final>>([](auto I) {   
+        print(I);        
+     });
 }
