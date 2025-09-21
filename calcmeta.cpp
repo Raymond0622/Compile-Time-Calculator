@@ -55,33 +55,33 @@ struct flatten<mp_list<First, Rest...>> {
     using res = mp_append<first, rest>;
 };
 
-// template <typename T, typename U, typename = void>
-// struct Add {};
+template <typename T, typename U, typename = void>
+struct Add {};
 
-// template <typename T, typename U, typename Carry>
-// struct Add<mp_list<T>, mp_list<U>, Carry> {
-//     //static_assert(std::is_same_v<Carry, One>);
-//     using D1_carry = std::conditional_t<std::is_same_v<Carry, One>, Carried<T>, typename T::D>;
-//     using curr = typename add_digit<typename D1_carry::D, U>::curr::type;
-//     using c = std::conditional_t<is_carry<D1_carry>::value, typename D1_carry::carry, Zero>;
-//     using rest = std::conditional_t<std::is_same_v<c, One> || 
-//         std::is_same_v<typename curr::Carry, One>, One, Zero>;
-//     using ans = std::conditional_t<std::is_same_v<rest, One>, 
-//         mp_list<typename curr::Remainder, mp_list<rest>>, mp_list<typename curr::Remainder>> ;
-// };
+template <typename T, typename U, typename Carry>
+struct Add<mp_list<T>, mp_list<U>, Carry> {
+    //static_assert(std::is_same_v<Carry, One>);
+    using D1_carry = std::conditional_t<std::is_same_v<Carry, One>, Carried<T>, typename T::D>;
+    using curr = typename add_digit<typename D1_carry::D, U>::curr::type;
+    using c = std::conditional_t<is_carry<D1_carry>::value, typename D1_carry::carry, Zero>;
+    using rest = std::conditional_t<std::is_same_v<c, One> || 
+        std::is_same_v<typename curr::Carry, One>, One, Zero>;
+    using ans = std::conditional_t<std::is_same_v<rest, One>, 
+        mp_list<typename curr::Remainder, mp_list<rest>>, mp_list<typename curr::Remainder>> ;
+};
 
-// template <typename D1, typename... D1s, template <typename...> class Number1, 
-//           typename D2, typename... D2s, template <typename...> class Number2, typename Carry>
-// struct Add<Number1<D1, D1s...>, Number2<D2, D2s...>, Carry> {
-//     using D1_carry = std::conditional_t<std::is_same_v<Carry, One>, Carried<D1>, typename D1::D>;
-//     using curr = typename add_digit<typename D1_carry::D, D2>::curr::type;
-//     using c = std::conditional_t<is_carry<D1_carry>::value, typename D1_carry::carry, Zero>;
+template <typename D1, typename... D1s, template <typename...> class Number1, 
+          typename D2, typename... D2s, template <typename...> class Number2, typename Carry>
+struct Add<Number1<D1, D1s...>, Number2<D2, D2s...>, Carry> {
+    using D1_carry = std::conditional_t<std::is_same_v<Carry, One>, Carried<D1>, typename D1::D>;
+    using curr = typename add_digit<typename D1_carry::D, D2>::curr::type;
+    using c = std::conditional_t<is_carry<D1_carry>::value, typename D1_carry::carry, Zero>;
     
-//     using rest = Add<Number1<D1s...>, Number2<D2s...>, 
-//         std::conditional_t<std::is_same_v<c, One> || 
-//         std::is_same_v<typename curr::Carry, One>, One, Zero>>;
-//     using ans = mp_list<typename curr::Remainder, typename rest::ans>;
-// };
+    using rest = Add<Number1<D1s...>, Number2<D2s...>, 
+        std::conditional_t<std::is_same_v<c, One> || 
+        std::is_same_v<typename curr::Carry, One>, One, Zero>>;
+    using ans = mp_list<typename curr::Remainder, typename rest::ans>;
+};
 
 template <typename T, typename U, typename = void>
 struct MultiplySingle {};
@@ -121,24 +121,48 @@ template <typename... D1s, template <typename...> class Number1,
 struct Multiply<Number1<D1s...>, Number2<D2, D2s...>, N> {
     using curr = typename flatten<typename MultiplySingle<Number1<D1s...>, Number2<D2>, Zero>::ans>::res;
     using rest = Multiply<Number1<D1s...>, Number2<D2s...>, N + 1>;
-    using ans = mp_append<mp_list<curr>, mp_flatten<mp_list<typename rest::ans>>>;
+    using ans = mp_append<mp_list<mp_append<mp_repeat_c<mp_list<Zero>, N>, curr>>, mp_flatten<mp_list<typename rest::ans>>>;
+};
+
+template <typename T>
+struct RecursiveAdd {};
+
+template <typename... D1s, template <typename...> class Number1, 
+        typename... D2s, template <typename...> class Number2>
+struct RecursiveAdd<mp_list<Number1<D1s...>, Number2<D2s...>>>{
+     using a = std::conditional_t<(mp_size<Number1<D1s...>>::value < mp_size<Number2<D2s...>>::value), 
+     mp_append<mp_repeat_c<mp_list<Zero>, mp_size<Number2<D2s...>>::value - mp_size<Number1<D1s...>>::value>, 
+     Number1<D1s...>>, 
+    // mp_append<mp_repeat_c<mp_list<Zero>, mp_size<Number1<D1s...>>::value - mp_size<Number2<D2s...>>::value>, Number2<D2s...>>>;
+    // using ans = std::conditional_t<mp_size<Number1<D1s...>>::value < mp_size<Number2<D2s...>>::value, 
+    //     typename flatten<typename Add<a, Number2<D2s...>, Zero>::ans>::res, 
+    //     typename flatten<typename Add<Number1<D1s...>, a, Zero>::ans>::res>;
+};
+
+template <typename... D1s, template <typename...> class Number1, 
+        typename... D2s, template <typename...> class Number2, typename... Ts> 
+struct RecursiveAdd<mp_list<Number1<D1s...>, Number2<D2s...>, Ts...>>{
+    using a = std::conditional_t<mp_size<Number1<D1s...>>::value < mp_size<Number2<D2s...>>::value, mp_append<mp_repeat_c<mp_list<Zero>, mp_size<Number2<D2s...>>::value - mp_size<Number1<D1s...>>::value>, Number1<D1s...>>, 
+        mp_append<mp_repeat_c<mp_list<Zero>, mp_size<Number1<D1s...>>::value - mp_size<Number1<D1s...>>::value>, Number2<D2s...>>>;
+    using res = std::conditional_t<mp_size<Number2<D1s...>>::value < mp_size<Number1<D2s...>>::value, 
+         typename flatten<typename Add<a, Number2<D2s...>, Zero>::ans>::res, 
+         typename flatten<typename Add<Number1<D1s...>, a, Zero>::ans>::res>;
+    using ans = typename RecursiveAdd<mp_list<res, Ts...>>::ans;
 };
 
 int main() {
     // Use Boost to store the digits of two numbers, number1 >= number2 requirement
     using number1 = mp_list<One, Two, Three, Four>;
-    using number2 = mp_list<Nine, Two, Three>;
+    using number2 = mp_list<Four, Three>;
     constexpr size_t n1 = mp_size<number1>::value;
     constexpr size_t n2 = mp_size<number2>::value;
+    //static_assertmp_size<number1>::value < mp_size<number2>::value>);
 
     //using num2 = mp_append<number2, mp_repeat_c<mp_list<Zero>, n1 - n2>>;
     //using num1 = number1;
     //constexpr size_t n3 = mp_size<num2>::value;
     using ans = typename Multiply<number1, number2, 0>::ans;
     //std::cout << mp_size<ans>::value;
-    using one = mp_at_c<ans, 0>;
-    using two = mp_at_c<ans, 1>;
-    using three = mp_at_c<ans, 2>;
     
     // mp_for_each<mp_reverse<number1>>([] (auto d) {
     //     print(d);
@@ -149,10 +173,21 @@ int main() {
     // });
     // std::cout << " = ";
     // // Print out the results
-    mp_for_each<mp_reverse<two>>([](auto d) {
-           print(d);
-     });
-    
-    
+    using final = typename RecursiveAdd<ans>::a;
 
+    // mp_for_each<ans>([](auto I) {
+    //     mp_for_each<mp_reverse<decltype(I)>>([](auto d) {
+    //        print(d);
+           
+    //  });
+    //  std::cout << ' ' << std::endl;
+    // });
+    // // using t = typename RecursiveAdd<ans>::a;
+    // // mp_for_each<t>([] (auto I) {
+    // //     print(I);
+    // // });
+
+    // mp_for_each<mp_reverse<final>>([](auto I) {   
+    //     print(I);        
+    //  });
 }
