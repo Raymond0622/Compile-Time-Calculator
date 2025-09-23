@@ -144,43 +144,78 @@ struct RecursiveAdd<mp_list<Number1<D1s...>, Number2<D2s...>, Ts...>>{
     using ans = typename RecursiveAdd<mp_list<res, Ts...>>::ans;
 };
 
+template <long long N>
+struct CreateDigits {
+    using ans = mp_flatten<mp_list<typename convertIntDigit<N % 10>::D, typename CreateDigits<N / 10>::ans>>;
+};
+template <>
+struct CreateDigits<0> {
+    using ans = mp_list<>;
+};
+
 int main() {
     // Use Boost to store the digits of two numbers, number1 >= number2 requirement (for addition only)
-    using number1 = mp_list<One, Two, Three, Four>;
-    using number2 = mp_list<Four, Three, Five, Six, Seven, Four>;
-    constexpr size_t n1 = mp_size<number1>::value;
-    constexpr size_t n2 = mp_size<number2>::value;
-
-    //using num2 = mp_append<number2, mp_repeat_c<mp_list<Zero>, n1 - n2>>;
-    //using num1 = number1;
-    //constexpr size_t n3 = mp_size<num2>::value;
-    using ans = typename Multiply<mp_reverse<number1>, mp_reverse<number2>, 0>::ans;
-    //std::cout << mp_size<ans>::value;
+    using number1 = typename CreateDigits<NUMBER1>::ans;
+    using number2 = typename CreateDigits<NUMBER2>::ans;
     
-    // mp_for_each<mp_reverse<number1>>([] (auto d) {
-    //     print(d);
-    // });
-    // std::cout << " * ";
-    // mp_for_each<mp_reverse<number2>>([] (auto d) {
-    //     print(d);
-    // });
-    // std::cout << " = ";
-    // // Print out the results
-    using final = typename RecursiveAdd<ans>::ans;
 
-    mp_for_each<ans>([](auto I) {
-        mp_for_each<mp_reverse<decltype(I)>>([](auto d) {
-           print(d);
-           
-     });
-     std::cout << ' ' << std::endl;
-    });
-    // // using t = typename RecursiveAdd<ans>::a;
-    // // mp_for_each<t>([] (auto I) {
-    // //     print(I);
-    // // });
+    constexpr char ops = OPERATION[0];
+    if constexpr(ops == '*') {
+        using ans = typename Multiply<number1, number2, 0>::ans;
+            
+        mp_for_each<mp_reverse<number1>>([] (auto d) {
+        print(d);
+        });
 
-    mp_for_each<mp_reverse<final>>([](auto I) {   
-        print(I);        
-     });
+        std::cout << " * ";
+        mp_for_each<mp_reverse<number2>>([] (auto d) {
+            print(d);
+        });
+        
+        std::cout << " = ";
+
+        // // Print out the results
+        using final = typename RecursiveAdd<ans>::ans;
+
+        mp_for_each<mp_reverse<final>>([](auto I) {   
+            print(I);        
+        });
+    }
+    else if constexpr (ops == '+') {
+        constexpr size_t n1 = mp_size<number1>::value;
+        constexpr size_t n2 = mp_size<number2>::value;
+        constexpr size_t diff = n1 > n2 ? n1 - n2 : n2 - n1;
+
+        using zeros = mp_repeat_c<mp_list<Zero>, diff>;
+        using alter = std::conditional_t<(n1 > n2), 
+            mp_append<zeros, number2>, mp_append<zeros, number1>>;
+        std::cout << n1 << n2 << std::endl;
+        std::cout << mp_size<alter>::value << std::endl;
+        using final = std::conditional_t<(n1 > n2),
+            typename flatten<typename Add<number1, alter, Zero>::ans>::res, 
+            typename flatten<typename Add<number2, alter, Zero>::ans>::res>;
+        
+        mp_for_each<mp_reverse<alter>>([] (auto d) {
+            print(d);
+        });
+
+        mp_for_each<mp_reverse<number2>>([] (auto d) {
+            print(d);
+        });
+        mp_for_each<mp_reverse<number1>>([] (auto d) {
+            print(d);
+        });
+
+        // std::cout << " + ";
+        // mp_for_each<mp_reverse<number2>>([] (auto d) {
+        //     print(d);
+        // });
+
+        // std::cout << " = ";
+        // mp_for_each<mp_reverse<final>>([](auto I) {   
+        //     print(I);        
+        // });
+
+    }
+
 }

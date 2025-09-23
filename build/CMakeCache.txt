@@ -201,6 +201,15 @@ CMAKE_TAPI:FILEPATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeD
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//No help, variable specified on the command line.
+NUMBER1:UNINITIALIZED=12345
+
+//No help, variable specified on the command line.
+NUMBER2:UNINITIALIZED=1234567
+
+//No help, variable specified on the command line.
+OPERATION:UNINITIALIZED=+
+
 //Value Computed by CMake
 TempCalculator_BINARY_DIR:STATIC=/Users/raymondpark/Desktop/music_software/template calc/build
 

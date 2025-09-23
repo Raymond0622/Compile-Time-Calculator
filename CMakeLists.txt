@@ -6,3 +6,7 @@ set(Boost_MP11_Include_Dirs "/opt/homebrew/opt/boost/include/")
 set(Calculator_Include_Dirs "/Users/raymondpark/Desktop/music_software/template calc/include")
 add_executable(run calcmeta.cpp)
 target_include_directories(run PUBLIC ${Boost_MP11_Include_Dirs} ${Calculator_Include_Dirs})
+
+add_definitions(-DNUMBER1=${NUMBER1})
+add_definitions(-DNUMBER2=${NUMBER2})
+add_definitions(-DOPERATION="${OPERATION}")
