@@ -153,69 +153,64 @@ struct CreateDigits<0> {
     using ans = mp_list<>;
 };
 
+template <typename T, typename U, bool useT = false>
+struct Swap {};
+
+template <typename T, typename U>
+struct Swap<T, U, true> {
+    using num1 = T;
+    using num2 = U;
+};
+
+template <typename T, typename U>
+struct Swap<T, U, false> {
+    using num1 = U;
+    using num2 = T;
+};
+
+template <typename Number1, typename Number2, typename Final>
+void print() {
+    mp_for_each<mp_reverse<Number1>>([] (auto d) {
+    print(d);
+    });
+
+    std::cout << " " << OPERATION << " ";
+    mp_for_each<mp_reverse<Number2>>([] (auto d) {
+        print(d);
+    });
+    
+    std::cout << " = ";
+
+    mp_for_each<mp_reverse<Final>>([](auto I) {   
+        print(I);        
+    });
+
+};
+
 int main() {
-    // Use Boost to store the digits of two numbers, number1 >= number2 requirement (for addition only)
+
+                
     using number1 = typename CreateDigits<NUMBER1>::ans;
     using number2 = typename CreateDigits<NUMBER2>::ans;
-    
-
     constexpr char ops = OPERATION[0];
     if constexpr(ops == '*') {
         using ans = typename Multiply<number1, number2, 0>::ans;
-            
-        mp_for_each<mp_reverse<number1>>([] (auto d) {
-        print(d);
-        });
-
-        std::cout << " * ";
-        mp_for_each<mp_reverse<number2>>([] (auto d) {
-            print(d);
-        });
-        
-        std::cout << " = ";
-
-        // // Print out the results
         using final = typename RecursiveAdd<ans>::ans;
-
-        mp_for_each<mp_reverse<final>>([](auto I) {   
-            print(I);        
-        });
+        print<number1, number2, final>();
     }
     else if constexpr (ops == '+') {
+
         constexpr size_t n1 = mp_size<number1>::value;
         constexpr size_t n2 = mp_size<number2>::value;
-        constexpr size_t diff = n1 > n2 ? n1 - n2 : n2 - n1;
-
-        using zeros = mp_repeat_c<mp_list<Zero>, diff>;
-        using alter = std::conditional_t<(n1 > n2), 
-            mp_append<zeros, number2>, mp_append<zeros, number1>>;
-        std::cout << n1 << n2 << std::endl;
-        std::cout << mp_size<alter>::value << std::endl;
-        using final = std::conditional_t<(n1 > n2),
-            typename flatten<typename Add<number1, alter, Zero>::ans>::res, 
-            typename flatten<typename Add<number2, alter, Zero>::ans>::res>;
+        // Need to swap since the implementation requires the same number of digits
         
-        mp_for_each<mp_reverse<alter>>([] (auto d) {
-            print(d);
-        });
-
-        mp_for_each<mp_reverse<number2>>([] (auto d) {
-            print(d);
-        });
-        mp_for_each<mp_reverse<number1>>([] (auto d) {
-            print(d);
-        });
-
-        // std::cout << " + ";
-        // mp_for_each<mp_reverse<number2>>([] (auto d) {
-        //     print(d);
-        // });
-
-        // std::cout << " = ";
-        // mp_for_each<mp_reverse<final>>([](auto I) {   
-        //     print(I);        
-        // });
-
+        using num1 = typename Swap<number1, number2, (n1 > n2)>::num1;
+        using num2 = typename Swap<number1, number2, (n1 > n2)>::num2;
+        using zeros = mp_repeat_c<mp_list<Zero>, (mp_size<num1>::value - mp_size<num2>::value)>;
+        using alter = mp_append<num2, zeros>;
+        using final = typename flatten<typename Add<num1, alter, Zero>::ans>::res;
+        print<number1, number2, final>();
+    
     }
 
 }
