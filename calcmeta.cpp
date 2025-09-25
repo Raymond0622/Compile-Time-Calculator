@@ -1,6 +1,8 @@
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
+#include <cstring>
+#include <utility> 
 #include "boost/mp11/list.hpp"
 #include "boost/mp11/algorithm.hpp"
 #include "boost/type_index.hpp"
@@ -187,11 +189,50 @@ void print() {
 
 };
 
+// template <const char* c, size_t N>
+// struct turn {
+//     using ans = mp_list<convertIntDigit<c[N] - '0'>>;
+// };
+
+
+template <size_t N>
+struct fixed_string {
+    char value[N];
+
+    constexpr fixed_string(char const (&str)[N]) {
+        for (std::size_t i = 0; i < N; ++i)
+            value[i] = str[i];
+    }
+};
+
+template <fixed_string S, typename T>
+struct DigitToMPList {};
+
+template <fixed_string S, size_t... I>
+struct DigitToMPList<S, std::index_sequence<I...>> {
+    using mplist = mp_list<typename convertIntDigit<S.value[I] - '0'>::D...>;
+};
+
+template <fixed_string S>
+struct CharToDigit {
+    using digits = typename 
+        DigitToMPList<S, std::make_index_sequence<sizeof(S.value) - 1>>::mplist;
+};
+
 int main() {
 
-                
-    using number1 = typename CreateDigits<NUMBER1>::ans;
-    using number2 = typename CreateDigits<NUMBER2>::ans;
+    using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
+    using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
+    mp_for_each<number1>([](auto I) {
+        print(I);
+    });
+    std::cout << std::endl;
+
+    mp_for_each<number2>([](auto I) {
+        print(I);
+    });
+    std::cout << std::endl;
+
     constexpr char ops = OPERATION[0];
     if constexpr(ops == '*') {
         using ans = typename Multiply<number1, number2, 0>::ans;
@@ -203,7 +244,6 @@ int main() {
         constexpr size_t n1 = mp_size<number1>::value;
         constexpr size_t n2 = mp_size<number2>::value;
         // Need to swap since the implementation requires the same number of digits
-        
         using num1 = typename Swap<number1, number2, (n1 > n2)>::num1;
         using num2 = typename Swap<number1, number2, (n1 > n2)>::num2;
         using zeros = mp_repeat_c<mp_list<Zero>, (mp_size<num1>::value - mp_size<num2>::value)>;
