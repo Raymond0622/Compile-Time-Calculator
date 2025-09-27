@@ -144,7 +144,8 @@ struct Subtract<Number1<D1>, Number2<D2>, T> {
     using sub = typename subtract_digit<typename sub_before::type, D2>::curr;
     // using borrow = std::conditional_t<std::is_same_v<typename sub_before::borrow, One> ||
     //         std::is_same_v<typename sub::borrow, One>, One, Zero>;
-    using ans = std::conditional<std::is_same_v<One, sub>, mp_list<One>, mp_list<>>;
+    using ans = std::conditional_t<std::is_same_v<Zero, typename sub::type>, mp_list<>, 
+        mp_list<typename sub::type>>;
 };
 
 template <typename D1, typename... D1s, template <typename...> class Number1,
@@ -155,7 +156,7 @@ struct Subtract<Number1<D1, D1s...>, Number2<D2, D2s...>, T> {
         
     using borrow = std::conditional_t<std::is_same_v<typename sub_before::borrow, One> ||
             std::is_same_v<typename sub::borrow, One>, One, Zero>;
-    using ans = mp_append<mp_list<typename sub::type>, 
+    using ans = mp_list<typename sub::type, 
         typename Subtract<Number1<D1s...>, Number2<D2s...>, borrow>::ans>;
 };
 
@@ -306,7 +307,8 @@ int main() {
 
         using sub1 = typename Swap<num1, alter, Compare<num1, alter>::ans::value>::num1;
         using sub2 = typename Swap<num1, alter, Compare<num1, alter>::ans::value>::num2;
-        using final = typename flatten<typename Subtract<sub1, sub2, Zero>::ans>::res;
+        using final = mp_flatten<typename Subtract<sub1, sub2, Zero>::ans>;
+        std::cout << mp_size<final>::value << std::endl;
         print<sub1, sub2, final>();
         
     }
