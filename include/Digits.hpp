@@ -50,7 +50,7 @@ struct Nine : public Digit{
     static constexpr int val = 9;
 };
 
-template <size_t N>
+template <std::size_t N>
 struct convertIntDigit {};
 
 template <>

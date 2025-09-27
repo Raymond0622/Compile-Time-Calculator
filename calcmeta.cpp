@@ -35,6 +35,14 @@ struct multiply_digit {
     using curr = MultiplyDigits<D1, D2>;
 };
 
+template <typename D1, typename D2>
+struct subtract_digit {
+    // always subtract D1 - D2
+    static_assert(std::is_base_of_v<Digit, D1> && 
+        std::is_base_of_v<Digit, D2>, "not a digit");
+    using curr = SubtractDigits<D1, D2>;
+};
+
 template <typename T>
 struct is_mp_list : std::false_type {};
 
@@ -126,6 +134,31 @@ struct Multiply<Number1<D1s...>, Number2<D2, D2s...>, N> {
     using ans = mp_append<mp_list<mp_append<mp_repeat_c<mp_list<Zero>, N>, curr>>, mp_flatten<mp_list<typename rest::ans>>>;
 };
 
+template <typename T, typename U, typename S> 
+struct Subtract {};
+
+template <typename D1, template <typename...> class Number1,
+    typename D2, template <typename...> class Number2, typename T>
+struct Subtract<Number1<D1>, Number2<D2>, T> {
+    using sub_before = typename subtract_digit<D1, T>::curr;
+    using sub = typename subtract_digit<typename sub_before::type, D2>::curr;
+    // using borrow = std::conditional_t<std::is_same_v<typename sub_before::borrow, One> ||
+    //         std::is_same_v<typename sub::borrow, One>, One, Zero>;
+    using ans = std::conditional<std::is_same_v<One, sub>, mp_list<One>, mp_list<>>;
+};
+
+template <typename D1, typename... D1s, template <typename...> class Number1,
+    typename D2, typename... D2s, template <typename...> class Number2, typename T>
+struct Subtract<Number1<D1, D1s...>, Number2<D2, D2s...>, T> {
+    using sub_before = typename subtract_digit<D1, T>::curr;
+    using sub = typename subtract_digit<typename sub_before::type, D2>::curr;
+        
+    using borrow = std::conditional_t<std::is_same_v<typename sub_before::borrow, One> ||
+            std::is_same_v<typename sub::borrow, One>, One, Zero>;
+    using ans = mp_append<mp_list<typename sub::type>, 
+        typename Subtract<Number1<D1s...>, Number2<D2s...>, borrow>::ans>;
+};
+
 template <typename T>
 struct RecursiveAdd {};
 
@@ -189,12 +222,6 @@ void print() {
 
 };
 
-// template <const char* c, size_t N>
-// struct turn {
-//     using ans = mp_list<convertIntDigit<c[N] - '0'>>;
-// };
-
-
 template <size_t N>
 struct fixed_string {
     char value[N];
@@ -217,6 +244,23 @@ template <fixed_string S>
 struct CharToDigit {
     using digits = typename 
         DigitToMPList<S, std::make_index_sequence<sizeof(S.value) - 1>>::mplist;
+};
+
+template <typename T, typename U>
+struct Compare {};
+
+template <typename D1, template <typename...> class Number1, 
+        typename D2, template <typename...> class Number2> 
+struct Compare<Number1<D1>, Number2<D2>> {
+    using ans = std::conditional_t<D1::val >= D2::val, std::true_type, std::false_type>;
+};
+
+template <typename D1, typename... D1s, template <typename...> class Number1, 
+        typename D2, typename... D2s, template <typename...> class Number2> 
+struct Compare<Number1<D1, D1s...>, Number2<D2, D2s...>> {
+    using c = std::conditional_t<D1::val >= D2::val, std::true_type, std::false_type>;
+    using ans = std::conditional_t<c::value && 
+        Compare<Number1<D1s...>, Number2<D2s...>>::ans::value, std::true_type, std::false_type>;
 };
 
 int main() {
@@ -250,7 +294,21 @@ int main() {
         using alter = mp_append<num2, zeros>;
         using final = typename flatten<typename Add<num1, alter, Zero>::ans>::res;
         print<number1, number2, final>();
-    
+    }
+    else if constexpr (ops == '-') {
+        constexpr size_t n1 = mp_size<number1>::value;
+        constexpr size_t n2 = mp_size<number2>::value;
+        // Need to swap since the implementation requires the same number of digits
+        using num1 = typename Swap<number1, number2, (n1 > n2)>::num1;
+        using num2 = typename Swap<number1, number2, (n1 > n2)>::num2;
+        using zeros = mp_repeat_c<mp_list<Zero>, (mp_size<num1>::value - mp_size<num2>::value)>;
+        using alter = mp_append<num2, zeros>;
+
+        using sub1 = typename Swap<num1, alter, Compare<num1, alter>::ans::value>::num1;
+        using sub2 = typename Swap<num1, alter, Compare<num1, alter>::ans::value>::num2;
+        using final = typename flatten<typename Subtract<sub1, sub2, Zero>::ans>::res;
+        print<sub1, sub2, final>();
+        
     }
 
 }
