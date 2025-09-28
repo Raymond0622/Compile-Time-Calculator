@@ -31,13 +31,23 @@ struct MultiplyDigits {
     using type = Sum<typename convertIntDigit<rem>::D, typename convertIntDigit<carry>::D>;
 };
 
+template <int N, bool a>
+struct Negative{};
+
+template<int N>
+struct Negative<N, false> {
+    using res = typename convertIntDigit<10 + N>::D;
+};
+    
+template<int N>
+struct Negative<N, true> {
+    using res = typename convertIntDigit<N>::D;
+};
+
 template <typename D1, typename D2>
 struct SubtractDigits {
     static constexpr int diff = D1::val - D2::val;
-    // using type = std::conditional_t<, 
-    //     typename convertIntDigit<diff>::D, 
-    //     typename convertIntDigit<10 + diff>::D>;
-    using type = typename convertIntDigit<diff>::D;
+    using type = typename Negative<diff, diff >= 0>::res;
     using borrow = std::conditional_t<diff >= 0, Zero, One>;
 };
 

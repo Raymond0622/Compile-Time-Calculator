@@ -30,8 +30,11 @@ void print(T sum) {
     else if constexpr (std::is_same_v<Nine, T>) {
         std::cout << "9";
     }
-    else {
+    else if constexpr (std::is_same_v<Zero, T>){
         std::cout << "0";
+    }
+    else {
+        std::cout << "-";
     }
 }
 

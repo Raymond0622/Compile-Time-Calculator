@@ -202,10 +202,10 @@ CMAKE_TAPI:FILEPATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeD
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //No help, variable specified on the command line.
-NUMBER1:UNINITIALIZED=274
+NUMBER1:UNINITIALIZED=65
 
 //No help, variable specified on the command line.
-NUMBER2:UNINITIALIZED=123
+NUMBER2:UNINITIALIZED=12312
 
 //No help, variable specified on the command line.
 OPERATION:UNINITIALIZED=-

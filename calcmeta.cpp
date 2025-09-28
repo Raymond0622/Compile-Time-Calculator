@@ -13,6 +13,8 @@
 #include "Carry.hpp"
 #include "Operations.hpp"
 
+constexpr char ops = OPERATION[0];
+
 using namespace boost::mp11;
 
 template <typename T, typename = void>
@@ -157,7 +159,7 @@ struct Subtract<Number1<D1, D1s...>, Number2<D2, D2s...>, T> {
     using borrow = std::conditional_t<std::is_same_v<typename sub_before::borrow, One> ||
             std::is_same_v<typename sub::borrow, One>, One, Zero>;
     using ans = mp_list<typename sub::type, 
-        typename Subtract<Number1<D1s...>, Number2<D2s...>, borrow>::ans>;
+        mp_flatten<typename Subtract<Number1<D1s...>, Number2<D2s...>, borrow>::ans>>;
 };
 
 template <typename T>
@@ -204,21 +206,33 @@ struct Swap<T, U, false> {
     using num2 = T;
 };
 
-template <typename Number1, typename Number2, typename Final>
+struct Neg {};
+
+template <typename Number1, typename Number2, typename Final, 
+    bool isPositive1, bool isPositive2, bool isPositive>
+
 void print() {
-    mp_for_each<mp_reverse<Number1>>([] (auto d) {
-    print(d);
+    using n1 = mp_append<Number1, std::conditional_t<isPositive1, mp_list<>, mp_list<Neg>>>;
+    using n2 = mp_append<Number2, std::conditional_t<isPositive2, mp_list<>, mp_list<Neg>>>;
+    using f = mp_append<Final, std::conditional_t<isPositive, mp_list<>, mp_list<Neg>>>;
+    
+    mp_for_each<mp_reverse<n1>>([] (auto d) {
+        print(d);
     });
 
     std::cout << " " << OPERATION << " ";
-    mp_for_each<mp_reverse<Number2>>([] (auto d) {
+    mp_for_each<mp_reverse<n2>>([] (auto d) {
         print(d);
     });
     
     std::cout << " = ";
-
-    mp_for_each<mp_reverse<Final>>([](auto I) {   
-        print(I);        
+    bool found = false;
+    mp_for_each<mp_reverse<f>>([&](auto I) {   
+        if constexpr (!std::is_same_v<decltype(I), Zero>) {
+            found = true;
+        }
+        if (found)
+            print(I);        
     });
 
 };
@@ -259,30 +273,21 @@ struct Compare<Number1<D1>, Number2<D2>> {
 template <typename D1, typename... D1s, template <typename...> class Number1, 
         typename D2, typename... D2s, template <typename...> class Number2> 
 struct Compare<Number1<D1, D1s...>, Number2<D2, D2s...>> {
-    using c = std::conditional_t<D1::val >= D2::val, std::true_type, std::false_type>;
-    using ans = std::conditional_t<c::value && 
-        Compare<Number1<D1s...>, Number2<D2s...>>::ans::value, std::true_type, std::false_type>;
+    using c = std::conditional_t<D1::val == D2::val, std::true_type, std::false_type>;
+    using ans = std::conditional_t<c::value, 
+        typename Compare<Number1<D1s...>, Number2<D2s...>>::ans, 
+        std::conditional_t<(D1::val > D2::val), std::true_type, std::false_type>>;
 };
 
 int main() {
 
     using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
     using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
-    mp_for_each<number1>([](auto I) {
-        print(I);
-    });
-    std::cout << std::endl;
 
-    mp_for_each<number2>([](auto I) {
-        print(I);
-    });
-    std::cout << std::endl;
-
-    constexpr char ops = OPERATION[0];
-    if constexpr(ops == '*') {
+    if constexpr (ops == '*') {
         using ans = typename Multiply<number1, number2, 0>::ans;
         using final = typename RecursiveAdd<ans>::ans;
-        print<number1, number2, final>();
+        print<number1, number2, final, true, true, true>();
     }
     else if constexpr (ops == '+') {
 
@@ -294,22 +299,36 @@ int main() {
         using zeros = mp_repeat_c<mp_list<Zero>, (mp_size<num1>::value - mp_size<num2>::value)>;
         using alter = mp_append<num2, zeros>;
         using final = typename flatten<typename Add<num1, alter, Zero>::ans>::res;
-        print<number1, number2, final>();
+        print<number1, number2, final, true, true, true>();
     }
     else if constexpr (ops == '-') {
+        // This requires two steps:
+        // 1. Perform padding to fill the two numbers with equal number of digits
+        // 2. Compare the two digits to see which one is bigger
+        
+        // This require two steps because to compare which digit is bigger,
+        // Need to swap based on # of digits, and padd the smaller lesser digits with 0's
+        // Need to do this to compare the numbers digit by digit.
+        // Sure, we can compare just which number has more digits, and it's the greater one,
+        // But, what happens if the # of digits are the same. We still have to compare digit.
+        // So to consider both cases (same digits, different digits), need both step
         constexpr size_t n1 = mp_size<number1>::value;
         constexpr size_t n2 = mp_size<number2>::value;
-        // Need to swap since the implementation requires the same number of digits
-        using num1 = typename Swap<number1, number2, (n1 > n2)>::num1;
-        using num2 = typename Swap<number1, number2, (n1 > n2)>::num2;
+        using num1 = typename Swap<number1, number2, (n1 >= n2)>::num1;
+        using num2 = typename Swap<number1, number2, (n1 >= n2)>::num2;
         using zeros = mp_repeat_c<mp_list<Zero>, (mp_size<num1>::value - mp_size<num2>::value)>;
         using alter = mp_append<num2, zeros>;
-
-        using sub1 = typename Swap<num1, alter, Compare<num1, alter>::ans::value>::num1;
-        using sub2 = typename Swap<num1, alter, Compare<num1, alter>::ans::value>::num2;
+        
+        // Next, we compare the digits which one is bigger, obviously starting from 
+        // the most significant digit
+        using val = typename Compare<mp_reverse<num1>, mp_reverse<alter>>::ans;
+        using sub1 = typename Swap<num1, alter, val::value>::num1;
+        using sub2 = typename Swap<num1, alter, val::value>::num2;
         using final = mp_flatten<typename Subtract<sub1, sub2, Zero>::ans>;
-        std::cout << mp_size<final>::value << std::endl;
-        print<sub1, sub2, final>();
+        
+        print<number1, number2, final, true, true, val::value && (n1 >= n2)>();
+
+
         
     }
 
