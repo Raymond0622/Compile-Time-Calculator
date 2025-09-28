@@ -10,3 +10,13 @@ target_include_directories(run PUBLIC ${Boost_MP11_Include_Dirs} ${Calculator_In
 add_definitions(-DNUMBER1="${NUMBER1}")
 add_definitions(-DNUMBER2="${NUMBER2}")
 add_definitions(-DOPERATION="${OPERATION}")
+
+if(OPERATION STREQUAL "*")
+    add_definitions(-DMULTIPLY)
+elseif(OPERATION STREQUAL "+")
+    add_definitions(-DADD)
+elseif(OPERATION STREQUAL "-")
+    add_definitions(-DSUBTRACT)
+else()
+    message(FATAL_ERROR "Unknown OPERATION: ${OPERATION}")
+endif()

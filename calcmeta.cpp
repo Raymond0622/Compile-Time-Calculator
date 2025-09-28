@@ -284,12 +284,12 @@ int main() {
     using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
     using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
 
-    if constexpr (ops == '*') {
+    #if defined(MULTIPLY)
         using ans = typename Multiply<number1, number2, 0>::ans;
         using final = typename RecursiveAdd<ans>::ans;
         print<number1, number2, final, true, true, true>();
-    }
-    else if constexpr (ops == '+') {
+   
+    #elif defined(ADD)
 
         constexpr size_t n1 = mp_size<number1>::value;
         constexpr size_t n2 = mp_size<number2>::value;
@@ -300,8 +300,8 @@ int main() {
         using alter = mp_append<num2, zeros>;
         using final = typename flatten<typename Add<num1, alter, Zero>::ans>::res;
         print<number1, number2, final, true, true, true>();
-    }
-    else if constexpr (ops == '-') {
+
+    #elif defined(SUBTRACT)
         // This requires two steps:
         // 1. Perform padding to fill the two numbers with equal number of digits
         // 2. Compare the two digits to see which one is bigger
@@ -327,9 +327,7 @@ int main() {
         using final = mp_flatten<typename Subtract<sub1, sub2, Zero>::ans>;
         
         print<number1, number2, final, true, true, val::value && (n1 >= n2)>();
-
-
-        
-    }
+   
+    #endif
 
 }
