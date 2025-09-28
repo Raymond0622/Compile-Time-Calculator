@@ -165,6 +165,11 @@ struct Subtract<Number1<D1, D1s...>, Number2<D2, D2s...>, T> {
 template <typename T>
 struct RecursiveAdd {};
 
+template <typename... D1s, template <typename...> class Number1>
+struct RecursiveAdd<Number1<D1s...>> {
+    using ans = mp_flatten<Number1<D1s...>>;
+};
+
 template <typename... D1s, template <typename...> class Number1, 
         typename... D2s, template <typename...> class Number2>
 struct RecursiveAdd<mp_list<Number1<D1s...>, Number2<D2s...>>>{
