@@ -67,6 +67,24 @@ struct flatten<mp_list<First, Rest...>> {
     using res = mp_append<first, rest>;
 };
 
+template <typename T, typename U>
+struct Compare {};
+
+template <typename D1, template <typename...> class Number1, 
+        typename D2, template <typename...> class Number2> 
+struct Compare<Number1<D1>, Number2<D2>> {
+    using ans = std::conditional_t<D1::val >= D2::val, std::true_type, std::false_type>;
+};
+
+template <typename D1, typename... D1s, template <typename...> class Number1, 
+        typename D2, typename... D2s, template <typename...> class Number2> 
+struct Compare<Number1<D1, D1s...>, Number2<D2, D2s...>> {
+    using c = std::conditional_t<D1::val == D2::val, std::true_type, std::false_type>;
+    using ans = std::conditional_t<c::value, 
+        typename Compare<Number1<D1s...>, Number2<D2s...>>::ans, 
+        std::conditional_t<(D1::val > D2::val), std::true_type, std::false_type>>;
+};
+
 template <typename T, typename U, typename = void>
 struct Add {};
 
@@ -162,11 +180,66 @@ struct Subtract<Number1<D1, D1s...>, Number2<D2, D2s...>, T> {
         mp_flatten<typename Subtract<Number1<D1s...>, Number2<D2s...>, borrow>::ans>>;
 };
 
+template <typename T, size_t N, bool cond>
+struct prefix;
+
+template <typename... Ts>
+struct prefix<mp_list<Ts...>, 0, true> {
+    using ans = mp_list<>;
+};
+
+// recursive case: N > 0
+template <typename T, typename... Ts, size_t N>
+struct prefix<mp_list<T, Ts...>, N, false> {
+    using ans = mp_flatten<mp_list<T, typename prefix<mp_list<Ts...>, N - 1, (N - 1 == 0)>::ans>>;
+};
+
+template <typename T, typename U, bool cond>
+struct RecursiveSubtract {
+};
+
+template <typename... D1s, template <typename...> class Number1,
+typename... D2s, template <typename...> class Number2>
+struct RecursiveSubtract<Number1<D1s...>, Number2<D2s...>, true> {
+        //10, 123
+    using res = mp_flatten<typename Subtract<Number1<D1s...>, Number2<D2s...>, Zero>::ans>;
+    using a = mp_append<res, mp_repeat_c<mp_list<Zero>, 
+        mp_size<Number2<D2s...>>::value - mp_size<res>::value>>;
+    // // compare if res >= num2 
+    using val = typename Compare<mp_reverse<a>, mp_reverse<Number2<D2s...>>>::ans; 
+    static constexpr size_t value = 1 + RecursiveSubtract<a, Number2<D2s...>, val::value>::value;
+        
+};
+
+template <typename... D1s, template <typename...> class Number1,
+typename... D2s, template <typename...> class Number2>
+struct RecursiveSubtract<Number1<D1s...>, Number2<D2s...>, false> {
+
+    static constexpr size_t value = 0;
+        
+};
+
+// template <typename T, typename U>
+// struct Divide {};
+
+// template <typename... D1s, template <typename...> class Number1,
+// typename... D2s, template <typename...> class Number2>
+// struct Divide<Number1<D1s...>, Number2<D2s...>> {
+//     static constexpr size_t n1 = mp_size<Number1<D1, D1s...>>::value;
+//     static constexpr size_t n2 = mp_size<Number1<D2s...>>::value;
+
+//     using ans = std::conditional_t<(n1 >= n2), 
+//         mp_list<typename RecursiveSubtract<Number1<D1, D1s...>, Number2<D2s...>>::count, 
+//         typename Divide<typename RecursiveSubtract<Number1<D1, D1s...>, Number2<D2s...>>::remainder,
+//         Number2<D2s...>>::ans>, >;
+
+// };
+
 template <typename T>
 struct RecursiveAdd {};
 
 template <typename... D1s, template <typename...> class Number1>
-struct RecursiveAdd<Number1<D1s...>> {
+struct RecursiveAdd<mp_list<Number1<D1s...>>> {
     using ans = mp_flatten<Number1<D1s...>>;
 };
 
@@ -215,7 +288,6 @@ struct Neg {};
 
 template <typename Number1, typename Number2, typename Final, 
     bool isPositive1, bool isPositive2, bool isPositive>
-
 void print() {
     using n1 = mp_append<Number1, std::conditional_t<isPositive1, mp_list<>, mp_list<Neg>>>;
     using n2 = mp_append<Number2, std::conditional_t<isPositive2, mp_list<>, mp_list<Neg>>>;
@@ -241,6 +313,12 @@ void print() {
     });
 
 };
+template <typename T>
+void printSingle() {
+    mp_for_each<T>([] (auto d) {
+        print(d);
+    });
+}
 
 template <size_t N>
 struct fixed_string {
@@ -266,33 +344,18 @@ struct CharToDigit {
         DigitToMPList<S, std::make_index_sequence<sizeof(S.value) - 1>>::mplist;
 };
 
-template <typename T, typename U>
-struct Compare {};
-
-template <typename D1, template <typename...> class Number1, 
-        typename D2, template <typename...> class Number2> 
-struct Compare<Number1<D1>, Number2<D2>> {
-    using ans = std::conditional_t<D1::val >= D2::val, std::true_type, std::false_type>;
-};
-
-template <typename D1, typename... D1s, template <typename...> class Number1, 
-        typename D2, typename... D2s, template <typename...> class Number2> 
-struct Compare<Number1<D1, D1s...>, Number2<D2, D2s...>> {
-    using c = std::conditional_t<D1::val == D2::val, std::true_type, std::false_type>;
-    using ans = std::conditional_t<c::value, 
-        typename Compare<Number1<D1s...>, Number2<D2s...>>::ans, 
-        std::conditional_t<(D1::val > D2::val), std::true_type, std::false_type>>;
-};
-
 int main() {
 
     using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
     using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
+    
+    std::cout <<  RecursiveSubtract<number1, number2, true>::value;
+    //std::cout << RecursiveSubtract<number1, number2>::value << std::endl;
 
     #if defined(MULTIPLY)
         using ans = typename Multiply<number1, number2, 0>::ans;
         using final = typename RecursiveAdd<ans>::ans;
-        print<number1, number2, final, true, true, true>();
+        //print<number1, number2, final, true, true, true>();
    
     #elif defined(ADD)
 
