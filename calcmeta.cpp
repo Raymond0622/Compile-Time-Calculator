@@ -198,6 +198,11 @@ template <typename T, size_t N, bool cond>
 struct prefix;
 
 template <typename... Ts>
+struct prefix<mp_list<Ts...>, 0, false> {
+    using ans = mp_list<Ts...>;
+};
+
+template <typename... Ts>
 struct prefix<mp_list<Ts...>, 0, true> {
     using ans = mp_list<>;
 };
@@ -205,18 +210,18 @@ struct prefix<mp_list<Ts...>, 0, true> {
 // recursive case: N > 0
 template <typename T, typename... Ts, size_t N>
 struct prefix<mp_list<T, Ts...>, N, false> {
-    using ans = mp_flatten<mp_list<T, typename prefix<mp_list<Ts...>, N - 1, (N - 1 == 0)>::ans>>;
+    using ans = mp_flatten<mp_list<T, typename prefix<mp_list<Ts...>, N - 1, ((N - 1) == 0)>::ans>>;
 };
 
-template <typename T, int N, bool cond>
+template <typename T, size_t N, bool cond>
 struct appendZeros {};
 
-template <typename... Ts, int N>
+template <typename... Ts, size_t N>
 struct appendZeros<mp_list<Ts...>, N, false> {
-    using ans = typename prefix<mp_list<Ts...>, N, false>::ans;
+    using ans = typename prefix<mp_list<Ts...>, N, N == 0>::ans;
 };
 
-template <typename... Ts, int N>
+template <typename... Ts, size_t N>
 struct appendZeros<mp_list<Ts...>, N, true> {
     using ans = mp_append<mp_list<Ts...>, mp_repeat_c<mp_list<Zero>, N>>;
 };
@@ -249,12 +254,12 @@ struct RecursiveSubtract<Number1<D1s...>, Number2<D2s...>, false> {
         
 };
 
-template <typename T, typename U>
+template <typename T, typename U, size_t N>
 struct Divide {};
 
 template <typename... D1s, template <typename...> class Number1,
-typename... D2s, template <typename...> class Number2>
-struct Divide<Number1<D1s...>, Number2<D2s...>> {
+typename... D2s, template <typename...> class Number2, size_t N>
+struct Divide<Number1<D1s...>, Number2<D2s...>, N> {
     constexpr static int n1 = mp_size<Number1<D1s...>>::value;
     constexpr static int n2 = mp_size<Number2<D2s...>>::value;
     constexpr static int diff = (n1 < n2) ? n2 - n1 : n2;
@@ -262,12 +267,30 @@ struct Divide<Number1<D1s...>, Number2<D2s...>> {
 
     // annoying dealing with std::conditional_t
     using interm = std::conditional_t<(n1 <= n2), dividend, Number1<D1s...>>;
-    constexpr static int interm_val = (n1 <= n2) ? 1 : n2 + 1;
+    constexpr static int interm_val = (n1 <= n2) ? 1 : (n2 + 1);
     using dividend_f = std::conditional_t<Compare<dividend, Number2<D2s...>>::ans::value,
          dividend, typename appendZeros<interm, interm_val, (n1 <= n2)>::ans>;
-
         
+    
+    constexpr static int df_val = mp_size<dividend_f>::value;
+    constexpr static int diff2 = (df_val - n2 == 0) ? 0 : df_val - n2;
+    using num2 = mp_reverse<mp_append<mp_reverse<Number2<D2s...>>, mp_repeat_c<mp_list<Zero>, diff2>>>;
+    
+    using curr = RecursiveSubtract<mp_reverse<dividend_f>, mp_reverse<num2>, true>;
+    using next_d = typename removeZeros<mp_reverse<typename curr::ans>>::ans;
+    using next = Divide<next_d, Number2<D2s...>, N - 1>;
+    using ans = mp_flatten<mp_list<typename convertIntDigit<curr::value>::D, typename next::ans>>;
+    constexpr static int decimal = ((n1 < n2) || !Compare<dividend, Number2<D2s...>>::ans::value) ? 
+         : next::decimal;
+    
+};
 
+template <typename... D1s, template <typename...> class Number1,
+typename... D2s, template <typename...> class Number2>
+struct Divide<Number1<D1s...>, Number2<D2s...>, 0> {
+    constexpr static int decimal = -1;
+    using ans = mp_list<>;
+    
 };
 
 template <typename T>
@@ -384,10 +407,28 @@ int main() {
     using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
     using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
     
-    using C = Divide<mp_reverse<number1>, mp_reverse<number2>>;
-    printSingle<typename C::dividend>();
-    std::cout <<std::endl;
+    using C = Divide<mp_reverse<number1>, mp_reverse<number2>, 10>;
+    // printSingle<typename C::dividend>();
+    // std::cout <<std::endl;
+    // printSingle<typename C::dividend_f>();
+    // std::cout << std::endl;
+    // printSingle<typename C::num2>();
+    // std::cout << std::endl;
+    // using L = typename C::curr;
+    using G = typename C::dividend;
+    printSingle<G>();
+    std::cout << std::endl;
+    printSingle<typename C::interm>();
+    std::cout << std::endl;
     printSingle<typename C::dividend_f>();
+    std::cout << std::endl;
+    std::cout << C::df_val << std::endl;
+    std::cout << C::diff2 << std::endl;
+    //using L = typename C::curr;
+    printSingle<typename C::ans>();
+    std::cout << std::endl;
+    std::cout << C::decimal << std::endl;
+    
     //std::cout << RecursiveSubtract<number1, number2>::value << std::endl;
 
     #if defined(MULTIPLY)
