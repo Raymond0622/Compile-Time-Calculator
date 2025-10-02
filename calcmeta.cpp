@@ -67,6 +67,20 @@ struct flatten<mp_list<First, Rest...>> {
     using res = mp_append<first, rest>;
 };
 
+template <typename T> 
+struct removeZeros {};
+
+template <typename T, typename... Ts>
+struct removeZeros<mp_list<T, Ts...>> {
+    using ans = std::conditional_t<std::is_same_v<T, Zero>, 
+        typename removeZeros<mp_list<Ts...>>::ans, mp_list<T, Ts...>>;
+};
+template <>
+struct removeZeros<mp_list<>> {
+    using ans = mp_list<>;
+};
+
+
 template <typename T, typename U>
 struct Compare {};
 
@@ -194,6 +208,19 @@ struct prefix<mp_list<T, Ts...>, N, false> {
     using ans = mp_flatten<mp_list<T, typename prefix<mp_list<Ts...>, N - 1, (N - 1 == 0)>::ans>>;
 };
 
+template <typename T, int N, bool cond>
+struct appendZeros {};
+
+template <typename... Ts, int N>
+struct appendZeros<mp_list<Ts...>, N, false> {
+    using ans = typename prefix<mp_list<Ts...>, N, false>::ans;
+};
+
+template <typename... Ts, int N>
+struct appendZeros<mp_list<Ts...>, N, true> {
+    using ans = mp_append<mp_list<Ts...>, mp_repeat_c<mp_list<Zero>, N>>;
+};
+
 template <typename T, typename U, bool cond>
 struct RecursiveSubtract {
 };
@@ -207,7 +234,9 @@ struct RecursiveSubtract<Number1<D1s...>, Number2<D2s...>, true> {
         mp_size<Number2<D2s...>>::value - mp_size<res>::value>>;
     // // compare if res >= num2 
     using val = typename Compare<mp_reverse<a>, mp_reverse<Number2<D2s...>>>::ans; 
-    static constexpr size_t value = 1 + RecursiveSubtract<a, Number2<D2s...>, val::value>::value;
+    using next = RecursiveSubtract<a, Number2<D2s...>, val::value>;
+    using ans = mp_append<mp_list<>, typename next::ans>;
+    static constexpr size_t value = 1 + next::value;
         
 };
 
@@ -215,25 +244,31 @@ template <typename... D1s, template <typename...> class Number1,
 typename... D2s, template <typename...> class Number2>
 struct RecursiveSubtract<Number1<D1s...>, Number2<D2s...>, false> {
 
+    using ans = Number1<D1s...>;
     static constexpr size_t value = 0;
         
 };
 
-// template <typename T, typename U>
-// struct Divide {};
+template <typename T, typename U>
+struct Divide {};
 
-// template <typename... D1s, template <typename...> class Number1,
-// typename... D2s, template <typename...> class Number2>
-// struct Divide<Number1<D1s...>, Number2<D2s...>> {
-//     static constexpr size_t n1 = mp_size<Number1<D1, D1s...>>::value;
-//     static constexpr size_t n2 = mp_size<Number1<D2s...>>::value;
+template <typename... D1s, template <typename...> class Number1,
+typename... D2s, template <typename...> class Number2>
+struct Divide<Number1<D1s...>, Number2<D2s...>> {
+    constexpr static int n1 = mp_size<Number1<D1s...>>::value;
+    constexpr static int n2 = mp_size<Number2<D2s...>>::value;
+    constexpr static int diff = (n1 < n2) ? n2 - n1 : n2;
+    using dividend = typename appendZeros<Number1<D1s...>, diff, n1 < n2>::ans;
 
-//     using ans = std::conditional_t<(n1 >= n2), 
-//         mp_list<typename RecursiveSubtract<Number1<D1, D1s...>, Number2<D2s...>>::count, 
-//         typename Divide<typename RecursiveSubtract<Number1<D1, D1s...>, Number2<D2s...>>::remainder,
-//         Number2<D2s...>>::ans>, >;
+    // annoying dealing with std::conditional_t
+    using interm = std::conditional_t<(n1 <= n2), dividend, Number1<D1s...>>;
+    constexpr static int interm_val = (n1 <= n2) ? 1 : n2 + 1;
+    using dividend_f = std::conditional_t<Compare<dividend, Number2<D2s...>>::ans::value,
+         dividend, typename appendZeros<interm, interm_val, (n1 <= n2)>::ans>;
 
-// };
+        
+
+};
 
 template <typename T>
 struct RecursiveAdd {};
@@ -349,7 +384,10 @@ int main() {
     using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
     using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
     
-    std::cout <<  RecursiveSubtract<number1, number2, true>::value;
+    using C = Divide<mp_reverse<number1>, mp_reverse<number2>>;
+    printSingle<typename C::dividend>();
+    std::cout <<std::endl;
+    printSingle<typename C::dividend_f>();
     //std::cout << RecursiveSubtract<number1, number2>::value << std::endl;
 
     #if defined(MULTIPLY)
