@@ -267,7 +267,6 @@ struct Divide<Number1<D1s...>, Number2<D2s...>, N> {
     constexpr static int n1 = mp_size<Number1<D1s...>>::value;
     constexpr static int n2 = mp_size<Number2<D2s...>>::value;
     constexpr static int diff = (n1 < n2) ? n2 - n1 : n2;
-    constexpr static size_t remain = N;
     using dividend = typename appendZeros<Number1<D1s...>, diff, n1 < n2>::ans;
 
     // annoying dealing with std::conditional_t
@@ -287,8 +286,7 @@ struct Divide<Number1<D1s...>, Number2<D2s...>, N> {
     constexpr static int pad = (n1 < n2) ? n2 - n1 - 1 + (1 - c::ans::value) : 0;
     using ans = mp_flatten<mp_append<mp_repeat_c<mp_list<Zero>, pad>, mp_list<typename convertIntDigit<curr::value>::D>,
     typename next::ans>>;
-    constexpr static int decimal = ((n1 < n2) ? n2 - n1 :
-    PRECISION - next::decimal);
+    constexpr static int decimal = ((n1 < n2) || (!c::ans::value && (n1 <= n2))) ? PRECISION - N : next::decimal;
     // constexpr static int decimal = -1;
     
 };
@@ -297,6 +295,14 @@ template <typename... D1s, template <typename...> class Number1,
 typename... D2s, template <typename...> class Number2>
 struct Divide<Number1<D1s...>, Number2<D2s...>, 0> {
     constexpr static int decimal = -1;
+    using ans = mp_list<>;
+    
+};
+
+template <template <typename...> class Number1,
+typename... D2s, template <typename...> class Number2, size_t N>
+struct Divide<Number1<>, Number2<D2s...>, N> {
+    constexpr static int decimal = PRECISION - N;
     using ans = mp_list<>;
     
 };
@@ -353,7 +359,7 @@ struct Swap<T, U, false> {
 struct Neg {};
 
 template <typename Number1, typename Number2, typename Final, 
-    bool isPositive1, bool isPositive2, bool isPositive>
+    bool isPositive1, bool isPositive2, bool isPositive, int decimal>
 void print() {
     using n1 = mp_append<Number1, std::conditional_t<isPositive1, mp_list<>, mp_list<Neg>>>;
     using n2 = mp_append<Number2, std::conditional_t<isPositive2, mp_list<>, mp_list<Neg>>>;
@@ -370,12 +376,22 @@ void print() {
     
     std::cout << " = ";
     bool found = false;
+    int count = 0;
     mp_for_each<mp_reverse<f>>([&](auto I) {   
-        if constexpr (!std::is_same_v<decltype(I), Zero>) {
-            found = true;
+        if constexpr (ops == '/') {
+            if (count == decimal) {
+                std::cout << '.';
+            }
+            print(I);
         }
-        if (found)
-            print(I);        
+        else {
+            if constexpr (!std::is_same_v<decltype(I), Zero>) {
+                found = true;
+            }
+            if (found)
+                print(I);    
+        }
+        count++;    
     });
 
 };
@@ -415,45 +431,12 @@ int main() {
     using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
     using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
     
-    using C = Divide<mp_reverse<number1>, mp_reverse<number2>, 10>;
-    // printSingle<typename C::dividend>();
-    // std::cout <<std::endl;
-    // printSingle<typename C::dividend_f>();
-    // std::cout << std::endl;
-    // printSingle<typename C::num2>();
-    // std::cout << std::endl;
-    //printSingle<typename C::curr::ans>();
-    // using G = typename C::dividend;
-    // printSingle<G>();
-    // std::cout << std::endl;
-    // printSingle<typename C::interm>();
-    // std::cout << std::endl;
-    // printSingle<typename C::dividend_f>();
-    // std::cout << std::endl;
-    // printSingle<typename C::num2>();
-    // std::cout << std::endl;
-    // // std::cout << C::df_val << std::endl;
-    // // std::cout << C::diff2 << std::endl;
-    // // //using L = typename C::curr;
-    // printSingle<typename C::curr::res>();
-    printSingle<typename C::curr::n1>();
-    printf("\n");
-    printSingle<typename C::curr::n2>();
-    printf("\n");
-    printSingle<typename C::ans>();
-    printf("\n");
-    std::cout << C::n1 << std::endl;
-    std::cout << C::n2 << std::endl;
-    std::cout << C::pad << std::endl;
-    // std::cout << std::endl;
-    // std::cout << C::decimal << std::endl;
-    
     //std::cout << RecursiveSubtract<number1, number2>::value << std::endl;
 
     #if defined(MULTIPLY)
         using ans = typename Multiply<number1, number2, 0>::ans;
         using final = typename RecursiveAdd<ans>::ans;
-        //print<number1, number2, final, true, true, true>();
+        print<number1, number2, final, true, true, true, -1>();
    
     #elif defined(ADD)
 
@@ -465,7 +448,7 @@ int main() {
         using zeros = mp_repeat_c<mp_list<Zero>, (mp_size<num1>::value - mp_size<num2>::value)>;
         using alter = mp_append<num2, zeros>;
         using final = typename flatten<typename Add<num1, alter, Zero>::ans>::res;
-        print<number1, number2, final, true, true, true>();
+        print<number1, number2, final, true, true, true, -1>();
 
     #elif defined(SUBTRACT)
         // This requires two steps:
@@ -490,13 +473,18 @@ int main() {
         using val = typename Compare<mp_reverse<num1>, mp_reverse<alter>>::ans;
         using sub1 = typename Swap<num1, alter, val::value>::num1;
         using sub2 = typename Swap<num1, alter, val::value>::num2;
-        printSingle<sub1>();
-        printf("\n");
-        printSingle<sub2>();
-        printf("\n");
         using final = mp_flatten<typename Subtract<sub1, sub2, Zero>::ans>;
         
-        print<number1, number2, final, true, true, val::value && (n1 >= n2)>();
+        print<number1, number2, final, true, true, val::value && (n1 >= n2), -1>();
+    #elif defined(DIVIDE)
+        constexpr size_t n11 = mp_size<number1>::value;
+        constexpr size_t n22 = mp_size<number2>::value;
+        constexpr size_t offset = (n11 > n22) ? n11 - n22 : 0;
+        
+        using C = Divide<mp_reverse<number1>, mp_append<mp_reverse<number2>,
+            mp_repeat_c<mp_list<Zero>, offset>>, PRECISION>;
+        using final = C::ans;
+        print<number1, number2, mp_reverse<final>, true, true, true, offset + C::decimal>();
    
     #endif
 
