@@ -11,6 +11,12 @@ add_definitions(-DNUMBER1="${NUMBER1}")
 add_definitions(-DNUMBER2="${NUMBER2}")
 add_definitions(-DOPERATION="${OPERATION}")
 
+if (NOT PRECISION)
+    add_definitions(-DPRECISION=10)
+else()
+    add_definitions(-DPRECISION=${PRECISION})
+endif()
+
 if(OPERATION STREQUAL "*")
     add_definitions(-DMULTIPLY)
 elseif(OPERATION STREQUAL "+")

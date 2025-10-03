@@ -234,7 +234,10 @@ template <typename... D1s, template <typename...> class Number1,
 typename... D2s, template <typename...> class Number2>
 struct RecursiveSubtract<Number1<D1s...>, Number2<D2s...>, true> {
         //10, 123
+    using n1 = Number1<D1s...>;
+    using n2 = Number2<D2s...>;
     using res = mp_flatten<typename Subtract<Number1<D1s...>, Number2<D2s...>, Zero>::ans>;
+
     using a = mp_append<res, mp_repeat_c<mp_list<Zero>, 
         mp_size<Number2<D2s...>>::value - mp_size<res>::value>>;
     // // compare if res >= num2 
@@ -260,18 +263,20 @@ struct Divide {};
 template <typename... D1s, template <typename...> class Number1,
 typename... D2s, template <typename...> class Number2, size_t N>
 struct Divide<Number1<D1s...>, Number2<D2s...>, N> {
+
     constexpr static int n1 = mp_size<Number1<D1s...>>::value;
     constexpr static int n2 = mp_size<Number2<D2s...>>::value;
     constexpr static int diff = (n1 < n2) ? n2 - n1 : n2;
+    constexpr static size_t remain = N;
     using dividend = typename appendZeros<Number1<D1s...>, diff, n1 < n2>::ans;
 
     // annoying dealing with std::conditional_t
     using interm = std::conditional_t<(n1 <= n2), dividend, Number1<D1s...>>;
     constexpr static int interm_val = (n1 <= n2) ? 1 : (n2 + 1);
-    using dividend_f = std::conditional_t<Compare<dividend, Number2<D2s...>>::ans::value,
+    using c = Compare<dividend, Number2<D2s...>>;
+    using dividend_f = std::conditional_t<c::ans::value,
          dividend, typename appendZeros<interm, interm_val, (n1 <= n2)>::ans>;
         
-    
     constexpr static int df_val = mp_size<dividend_f>::value;
     constexpr static int diff2 = (df_val - n2 == 0) ? 0 : df_val - n2;
     using num2 = mp_reverse<mp_append<mp_reverse<Number2<D2s...>>, mp_repeat_c<mp_list<Zero>, diff2>>>;
@@ -279,9 +284,12 @@ struct Divide<Number1<D1s...>, Number2<D2s...>, N> {
     using curr = RecursiveSubtract<mp_reverse<dividend_f>, mp_reverse<num2>, true>;
     using next_d = typename removeZeros<mp_reverse<typename curr::ans>>::ans;
     using next = Divide<next_d, Number2<D2s...>, N - 1>;
-    using ans = mp_flatten<mp_list<typename convertIntDigit<curr::value>::D, typename next::ans>>;
-    constexpr static int decimal = ((n1 < n2) || !Compare<dividend, Number2<D2s...>>::ans::value) ? 
-         : next::decimal;
+    constexpr static int pad = (n1 < n2) ? n2 - n1 - 1 + (1 - c::ans::value) : 0;
+    using ans = mp_flatten<mp_append<mp_repeat_c<mp_list<Zero>, pad>, mp_list<typename convertIntDigit<curr::value>::D>,
+    typename next::ans>>;
+    constexpr static int decimal = ((n1 < n2) ? n2 - n1 :
+    PRECISION - next::decimal);
+    // constexpr static int decimal = -1;
     
 };
 
@@ -414,20 +422,31 @@ int main() {
     // std::cout << std::endl;
     // printSingle<typename C::num2>();
     // std::cout << std::endl;
-    // using L = typename C::curr;
-    using G = typename C::dividend;
-    printSingle<G>();
-    std::cout << std::endl;
-    printSingle<typename C::interm>();
-    std::cout << std::endl;
-    printSingle<typename C::dividend_f>();
-    std::cout << std::endl;
-    std::cout << C::df_val << std::endl;
-    std::cout << C::diff2 << std::endl;
-    //using L = typename C::curr;
+    //printSingle<typename C::curr::ans>();
+    // using G = typename C::dividend;
+    // printSingle<G>();
+    // std::cout << std::endl;
+    // printSingle<typename C::interm>();
+    // std::cout << std::endl;
+    // printSingle<typename C::dividend_f>();
+    // std::cout << std::endl;
+    // printSingle<typename C::num2>();
+    // std::cout << std::endl;
+    // // std::cout << C::df_val << std::endl;
+    // // std::cout << C::diff2 << std::endl;
+    // // //using L = typename C::curr;
+    // printSingle<typename C::curr::res>();
+    printSingle<typename C::curr::n1>();
+    printf("\n");
+    printSingle<typename C::curr::n2>();
+    printf("\n");
     printSingle<typename C::ans>();
-    std::cout << std::endl;
-    std::cout << C::decimal << std::endl;
+    printf("\n");
+    std::cout << C::n1 << std::endl;
+    std::cout << C::n2 << std::endl;
+    std::cout << C::pad << std::endl;
+    // std::cout << std::endl;
+    // std::cout << C::decimal << std::endl;
     
     //std::cout << RecursiveSubtract<number1, number2>::value << std::endl;
 
@@ -471,6 +490,10 @@ int main() {
         using val = typename Compare<mp_reverse<num1>, mp_reverse<alter>>::ans;
         using sub1 = typename Swap<num1, alter, val::value>::num1;
         using sub2 = typename Swap<num1, alter, val::value>::num2;
+        printSingle<sub1>();
+        printf("\n");
+        printSingle<sub2>();
+        printf("\n");
         using final = mp_flatten<typename Subtract<sub1, sub2, Zero>::ans>;
         
         print<number1, number2, final, true, true, val::value && (n1 >= n2)>();
