@@ -1,6 +1,31 @@
 #ifndef DIGITS_HPP
 #define DIGITS_HPP
 
+#include "boost/mp11/list.hpp"
+#include "boost/mp11/algorithm.hpp"
+#include "boost/type_index.hpp"
+#include "boost/mp11/utility.hpp"
+#include "boost/mp11.hpp"
+
+using namespace boost::mp11;
+
+template <size_t N>
+struct fixed_string {
+    char value[N];
+
+    constexpr fixed_string(char const (&str)[N]) {
+        for (std::size_t i = 0; i < N; ++i)
+            value[i] = str[i];
+    }
+};
+
+
+template <typename T, typename = void>
+struct is_digit : std::false_type {};
+
+template <typename T>
+struct is_digit<T, std::void_t<typename T::c>> : std::true_type {};
+
 struct Digit {
     using carry = int;
 };
@@ -92,6 +117,29 @@ struct convertIntDigit<8> {
 template <>
 struct convertIntDigit<9> {
     using D = Nine;
+};
+
+template <long long N>
+struct CreateDigits {
+    using ans = mp_flatten<mp_list<typename convertIntDigit<N % 10>::D, typename CreateDigits<N / 10>::ans>>;
+};
+template <>
+struct CreateDigits<0> {
+    using ans = mp_list<>;
+};
+
+template <fixed_string S, typename T>
+struct DigitToMPList {};
+
+template <fixed_string S, size_t... I>
+struct DigitToMPList<S, std::index_sequence<I...>> {
+    using mplist = mp_list<typename convertIntDigit<S.value[I] - '0'>::D...>;
+};
+
+template <fixed_string S>
+struct CharToDigit {
+    using digits = typename 
+        DigitToMPList<S, std::make_index_sequence<sizeof(S.value) - 1>>::mplist;
 };
 
 #endif

@@ -3,9 +3,19 @@ project(TempCalculator CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 set(Boost_MP11_Include_Dirs "/opt/homebrew/opt/boost/include/")
-set(Calculator_Include_Dirs "/Users/raymondpark/Desktop/music_software/template calc/include")
+set(Calculator_Include_Dirs "${CMAKE_SOURCE_DIR}/include")
+
+add_library(calc_headers INTERFACE)
+
+target_include_directories(calc_headers
+    INTERFACE
+        ${Boost_MP11_Include_Dirs}      
+        ${Calculator_Include_Dirs}  
+)
+
 add_executable(run calcmeta.cpp)
-target_include_directories(run PUBLIC ${Boost_MP11_Include_Dirs} ${Calculator_Include_Dirs})
+
+target_link_libraries(run PRIVATE calc_headers)
 
 add_definitions(-DNUMBER1="${NUMBER1}")
 add_definitions(-DNUMBER2="${NUMBER2}")

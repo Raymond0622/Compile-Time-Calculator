@@ -759,8 +759,14 @@ CMakeFiles/run.dir/calcmeta.cpp.o
  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/14.0.3/include/stdint.h
  /Users/raymondpark/Desktop/music_software/template calc/include/Carry.hpp
  /Users/raymondpark/Desktop/music_software/template calc/include/Digits.hpp
- /Users/raymondpark/Desktop/music_software/template calc/include/Operations.hpp
+ /Users/raymondpark/Desktop/music_software/template calc/include/Miscellaenous.hpp
+ /Users/raymondpark/Desktop/music_software/template calc/include/Print.hpp
  /Users/raymondpark/Desktop/music_software/template calc/include/Sum.hpp
+ /Users/raymondpark/Desktop/music_software/template calc/include/TypeList.hpp
+ /Users/raymondpark/Desktop/music_software/template calc/include/core/Add.hpp
+ /Users/raymondpark/Desktop/music_software/template calc/include/core/Divide.hpp
+ /Users/raymondpark/Desktop/music_software/template calc/include/core/Multiply.hpp
+ /Users/raymondpark/Desktop/music_software/template calc/include/core/Subtract.hpp
  /opt/homebrew/opt/boost/include/boost/assert/source_location.hpp
  /opt/homebrew/opt/boost/include/boost/config.hpp
  /opt/homebrew/opt/boost/include/boost/config/compiler/clang.hpp

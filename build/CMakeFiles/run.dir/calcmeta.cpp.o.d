@@ -813,4 +813,10 @@ CMakeFiles/run.dir/calcmeta.cpp.o: \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/Digits.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/Sum.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/Carry.hpp \
-  /Users/raymondpark/Desktop/music_software/template\ calc/include/Operations.hpp
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/Print.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/Miscellaenous.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/TypeList.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Add.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Subtract.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Divide.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Multiply.hpp
