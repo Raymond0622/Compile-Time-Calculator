@@ -75,4 +75,19 @@ struct appendZeros<mp_list<Ts...>, N, true> {
     using ans = mp_append<mp_list<Ts...>, mp_repeat_c<mp_list<Zero>, N>>;
 };
 
+template <typename T, int N, bool cond>
+struct appendZerosBinary {};
+
+// Need to add Zeros
+template <typename... Ts, int N>
+struct appendZerosBinary<mp_list<Ts...>, N, true> {
+    using ans = mp_append<mp_repeat_c<mp_list<Zero>, N>, mp_list<Ts...>>;
+};
+
+template <typename... Ts, int N>
+struct appendZerosBinary<mp_list<Ts...>, N, false> {
+    using ans = mp_list<Ts...>;
+};
+
+
 #endif

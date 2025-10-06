@@ -208,19 +208,19 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 MULTIPLY:UNINITIALIZED=1
 
 //No help, variable specified on the command line.
-NUMBER:UNINITIALIZED=1234
+NUMBER:UNINITIALIZED=189
 
 //No help, variable specified on the command line.
-NUMBER1:UNINITIALIZED=1234
+NUMBER1:UNINITIALIZED=189
 
 //No help, variable specified on the command line.
-NUMBER2:UNINITIALIZED=123459
+NUMBER2:UNINITIALIZED=1200
 
 //No help, variable specified on the command line.
-OPERATION:UNINITIALIZED=*
+OPERATION:UNINITIALIZED=-
 
 //No help, variable specified on the command line.
-PRECISION:UNINITIALIZED=20
+PRECISION:UNINITIALIZED=10
 
 //No help, variable specified on the command line.
 SUBTRACT:UNINITIALIZED=1
