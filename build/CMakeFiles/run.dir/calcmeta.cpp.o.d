@@ -819,4 +819,5 @@ CMakeFiles/run.dir/calcmeta.cpp.o: \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Add.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Subtract.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Divide.hpp \
-  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Multiply.hpp
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Multiply.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Binary.hpp

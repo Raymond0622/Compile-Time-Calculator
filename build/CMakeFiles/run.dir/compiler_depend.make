@@ -763,6 +763,7 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
   /Users/raymondpark/Desktop/music_software/template\ calc/include/Sum.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/TypeList.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Add.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Binary.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Divide.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Multiply.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Subtract.hpp \
@@ -988,10 +989,6 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/_types/_off_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/semaphore:
-
-/opt/homebrew/opt/boost/include/boost/mp11/detail/mp_list.hpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/_types/_nlink_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/sift_down.h:
@@ -1041,6 +1038,8 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_rwlockattr_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/_types/_ino64_t.h:
+
+/Users/raymondpark/Desktop/music_software/template\ calc/include/core/Binary.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_mutexattr_t.h:
 
@@ -1117,6 +1116,10 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/_types/_mbstate_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/span:
+
+/opt/homebrew/opt/boost/include/boost/mp11/detail/mp_list.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/semaphore:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__compare/partial_order.h:
 
