@@ -23,17 +23,6 @@ constexpr char ops = OPERATION[0];
 
 using namespace boost::mp11;
 
-template <typename T, typename U>
-struct BinarySingle {};
-
-template <typename... D1s, template <typename...> class Number1, typename... D2s,template <typename...> class Number2>
-struct BinarySingle<Number1<D1s...>, Number2<D2s...>> {
-    using c = typename Compare<Number1<D1s...>, Number2<D2s...>>::ans;
-    using digit = std::conditional_t<c::value, One, Zero>;
-    using next = std::conditional_t<c::value, Subtract<Number1<D1s...>, 
-        Number2<D2s...>, Zero>, Number1<D1s...>>;
-    using ans = typename removeZeros<next>::ans;
-};
 
 template <typename T, typename U, size_t N, bool isZero, bool cond>
 struct MaxBinary {};
@@ -67,7 +56,7 @@ struct MaxBinary<Number1<D1s...>, Previous<D2s...>, N, false, false> {
     constexpr static size_t offset = (n11 > n22) ? n11 - n22 : 0;
     constexpr static size_t val = N - 1;
     using ans = typename Divide<Previous<D2s...>, mp_append<mp_list<Two>,
-        mp_repeat_c<mp_list<Zero>, offset>>, PRECISION>::ans;
+        mp_repeat_c<mp_list<Zero>, offset>>, PRECISION + 10>::ans;
          
 };
 
@@ -89,7 +78,11 @@ struct Binary<Number1<D1s...>, false> {
     constexpr static size_t diff = mp_size<Number1<D1s...>>::value - mp_size<bin>::value;
     
     using n_bin = mp_append<mp_repeat_c<mp_list<Zero>, diff>, bin>;
-    using next = mp_reverse<mp_flatten<typename Subtract<mp_reverse<Number1<D1s...>>, mp_reverse<n_bin>, Zero>::ans>>;
+    using a = mp_reverse<mp_flatten<typename Subtract<mp_reverse<Number1<D1s...>>, mp_reverse<n_bin>, Zero>::ans>>;
+    static_assert(mp_is_list<a>::value);
+    //201240112121
+    using b = typename removeZeros<a>::ans;
+    using next = std::conditional_t<std::is_same_v<mp_list<>, b>, mp_list<Zero>, b>;
     using next_bin = Binary<next, std::is_same_v<mp_list<One>, next> ||         std::is_same_v<mp_list<Zero>, next>>;
     using ans = mp_flatten<mp_list<mp_list_c<int, curr::val + 1>, typename next_bin::ans>>;
     
@@ -116,25 +109,12 @@ struct ReconstructBinary<Binaries<A, B, Cs...>> {
 template <typename A, template <typename...> class Binaries>
 struct ReconstructBinary<Binaries<A>> {
     using ans = std::conditional_t<A::value == 1, mp_list<One>, mp_list<>>;
-    //using ans = mp_append<mp_list<One>, mp_repeat_c<mp_list<Zero>, A::value - 0>>;
 };
-
-
 
 int main() {
 
     using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
     using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
-
-    using p = typename Binary<mp_reverse<number1>, false>::ans;
-    //std::cout << mp_size<p>::value << std::endl;
-    mp_for_each<p>([] (auto I) {
-        std::cout << decltype(I)::value << std::endl;
-    });
-    using ans = ReconstructBinary<p>::ans;
-    printSingle<ans>();
-    
-    //std::cout << RecursiveSubtract<number1, number2>::value << std::endl;
 
     #if defined(MULTIPLY)
         using ans = typename Multiply<number1, number2, 0>::ans;
@@ -189,6 +169,11 @@ int main() {
         using final = C::ans;
 
         printAll<number1, number2, mp_reverse<final>, true, true, true, offset + C::decimal>(ops);
+    #elif defined(BINARY) 
+        using p = typename Binary<mp_reverse<number1>, false>::ans;
+        using ans = ReconstructBinary<p>::ans;
+        std::cout << "Binary of " << NUMBER1 << ": ";
+        printSingle<ans>();
    
     #endif
 
