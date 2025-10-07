@@ -91,7 +91,7 @@ struct Binary<Number1<D1s...>, false> {
     using n_bin = mp_append<mp_repeat_c<mp_list<Zero>, diff>, bin>;
     using next = mp_reverse<mp_flatten<typename Subtract<mp_reverse<Number1<D1s...>>, mp_reverse<n_bin>, Zero>::ans>>;
     using next_bin = Binary<next, std::is_same_v<mp_list<One>, next> ||         std::is_same_v<mp_list<Zero>, next>>;
-    using ans = mp_flatten<mp_list<mp_list_c<int, curr::val>, typename next_bin::ans>>;
+    using ans = mp_flatten<mp_list<mp_list_c<int, curr::val + 1>, typename next_bin::ans>>;
     
 };
 
@@ -110,13 +110,12 @@ struct ReconstructBinary<Binaries<A, B, Cs...>> {
     using gap = mp_repeat_c<mp_list<Zero>, A::value - B::value - 1>;
     using head = mp_list<One>;
     using combined = mp_append<head, gap>;
-
     using ans = mp_append<combined, typename ReconstructBinary<Binaries<B, Cs...>>::ans>;
 };
 
 template <typename A, template <typename...> class Binaries>
 struct ReconstructBinary<Binaries<A>> {
-    using ans = std::conditional_t<A::value == 1, mp_list<One, Zero>, mp_list<Zero>>;
+    using ans = std::conditional_t<A::value == 1, mp_list<One>, mp_list<>>;
     //using ans = mp_append<mp_list<One>, mp_repeat_c<mp_list<Zero>, A::value - 0>>;
 };
 

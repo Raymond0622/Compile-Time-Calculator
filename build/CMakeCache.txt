@@ -211,7 +211,7 @@ MULTIPLY:UNINITIALIZED=1
 NUMBER:UNINITIALIZED=189
 
 //No help, variable specified on the command line.
-NUMBER1:UNINITIALIZED=189
+NUMBER1:UNINITIALIZED=20
 
 //No help, variable specified on the command line.
 NUMBER2:UNINITIALIZED=1200
