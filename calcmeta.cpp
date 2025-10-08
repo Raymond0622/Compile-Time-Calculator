@@ -24,16 +24,57 @@ constexpr char ops = OPERATION[0];
 
 using namespace boost::mp11;
 
+template <typename T, size_t N>
+struct Exponent {};
+
+template <typename... D1s, template <typename...> class Number1, size_t N>
+struct Exponent<Number1<D1s...>, N> {
+    using p = typename Binary<mp_reverse<Number1<D1s...>>, false>::ans;
+    using bin = mp_reverse<typename ReconstructBinary<p>::ans>;
+};
+
+template <typename T, typename U>
+struct RecursiveExponentBuild {};
+
+template <typename B, typename Current, typename... Bs>
+struct RecursiveExponentBuild<mp_list<B, Bs...>, Current> {
+    using ans = typename Multiply<Current, mp_list<Two>, 0>::ans;
+    using final = mp_reverse<typename RecursiveAdd<ans>::ans>;
+    using ans = mp_append<std::conditional_t<std::is_same_v<B, One>, Current, mp_list<>>, RecursiveExponentBuild<mp_list<Bs...>, 
+};
+
+
+//assume its in reverse order
+template <typename T>
+struct RecursiveMultiply {};
+
+template <typename T, typename U, typename... Remain>
+struct RecursiveMultiply<mp_list<T, U, Remain...>> {
+    using m = typename Multiply<T, U, 0>::ans;
+    using res = typename RecursiveAdd<m>::ans;
+    using ans = typename RecursiveMultiply<mp_list<res, Remain...>>::ans;
+};
+
+template <typename T>
+struct RecursiveMultiply<mp_list<T>> {
+    using ans = T;
+};
+
+
 int main() {
 
     using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
     using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
+    using number3 = mp_list<One, Two, Nine, Six, Zero, One>;
+    using c = typename RecursiveMultiply<mp_list<number1, number2, number3>>::ans;
+    printSingle<c>();
+    printf("\n");
 
     #if defined(MULTIPLY)
         using ans = typename Multiply<number1, number2, 0>::ans;
         using final = typename RecursiveAdd<ans>::ans;
         printAll<number1, number2, final, true, true, true, -1>(ops);
-   
+    
     #elif defined(ADD)
 
         constexpr size_t n1 = mp_size<number1>::value;

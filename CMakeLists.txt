@@ -21,7 +21,7 @@ add_definitions(-DNUMBER1="${NUMBER1}")
 add_definitions(-DNUMBER2="${NUMBER2}")
 add_definitions(-DOPERATION="${OPERATION}")
 
-if (NOT PRECISION)
+if (NOT DEFINED PRECISION)
     add_definitions(-DPRECISION=100)
 else()
     add_definitions(-DPRECISION=${PRECISION})

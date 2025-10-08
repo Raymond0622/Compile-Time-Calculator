@@ -33,10 +33,9 @@ struct MaxBinary<Number1<D1s...>, Previous<D2s...>, N, false, false> {
     constexpr static size_t offset = (n11 > n22) ? n11 - n22 : 0;
     constexpr static size_t val = N - 1;
     using ans = typename Divide<Previous<D2s...>, mp_append<mp_list<Two>,
-        mp_repeat_c<mp_list<Zero>, offset>>, PRECISION + 10>::ans;
+        mp_repeat_c<mp_list<Zero>, offset>>, PRECISION + 100>::ans;
          
 };
-
 
 template <typename... D1s, template <typename...> class Number1, typename U, size_t N>
 struct MaxBinary<Number1<D1s...>, U, N, true, false> {
@@ -57,7 +56,6 @@ struct Binary<Number1<D1s...>, false> {
     using n_bin = mp_append<mp_repeat_c<mp_list<Zero>, diff>, bin>;
     using a = mp_reverse<mp_flatten<typename Subtract<mp_reverse<Number1<D1s...>>, mp_reverse<n_bin>, Zero>::ans>>;
     static_assert(mp_is_list<a>::value);
-    //201240112121
     using b = typename removeZeros<a>::ans;
     using next = std::conditional_t<std::is_same_v<mp_list<>, b>, mp_list<Zero>, b>;
     using next_bin = Binary<next, std::is_same_v<mp_list<One>, next> ||         std::is_same_v<mp_list<Zero>, next>>;
