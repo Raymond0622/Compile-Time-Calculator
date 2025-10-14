@@ -765,8 +765,10 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Add.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Binary.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Divide.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Exponent.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Multiply.hpp \
   /Users/raymondpark/Desktop/music_software/template\ calc/include/core/Subtract.hpp \
+  /Users/raymondpark/Desktop/music_software/template\ calc/include/notation/Scientific.hpp \
   /opt/homebrew/opt/boost/include/boost/assert/source_location.hpp \
   /opt/homebrew/opt/boost/include/boost/config.hpp \
   /opt/homebrew/opt/boost/include/boost/config/compiler/clang.hpp \
@@ -900,6 +902,8 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__compare/compare_three_way_result.h:
 
 /opt/homebrew/opt/boost/include/boost/assert/source_location.hpp:
+
+/Users/raymondpark/Desktop/music_software/template\ calc/include/core/Exponent.hpp:
 
 /Users/raymondpark/Desktop/music_software/template\ calc/include/Sum.hpp:
 
@@ -1132,10 +1136,6 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/numbers:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/math.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/replace_copy_if.h:
-
-/opt/homebrew/opt/boost/include/boost/mp11/detail/mp_is_list.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/locale:
 
@@ -2019,6 +2019,10 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/runetype.h:
 
+/opt/homebrew/opt/boost/include/boost/mp11/detail/mp_is_list.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/replace_copy_if.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__utility/priority_tag.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__functional/binary_negate.h:
@@ -2040,6 +2044,8 @@ CMakeFiles/run.dir/calcmeta.cpp.o: /Users/raymondpark/Desktop/music_software/tem
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/ranges_stable_sort.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__concepts/same_as.h:
+
+/Users/raymondpark/Desktop/music_software/template\ calc/include/notation/Scientific.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/_types/_uid_t.h:
 

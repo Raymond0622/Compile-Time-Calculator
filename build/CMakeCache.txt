@@ -196,13 +196,16 @@ CMAKE_TAPI:FILEPATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeD
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //No help, variable specified on the command line.
-NUMBER1:UNINITIALIZED=201
+NUMBER1:UNINITIALIZED=123012385721238745219375912387581927358127358243758237458712348957189273458743875284785273847528347528374857324857823947598237458937489572312
 
 //No help, variable specified on the command line.
-NUMBER2:UNINITIALIZED=120124
+NUMBER2:UNINITIALIZED=51212512512512512
 
 //No help, variable specified on the command line.
 OPERATION:UNINITIALIZED=*
+
+//No help, variable specified on the command line.
+PRECISION:UNINITIALIZED=10
 
 //Value Computed by CMake
 TempCalculator_BINARY_DIR:STATIC=/Users/raymondpark/Desktop/music_software/template calc/build

@@ -11,7 +11,7 @@ using namespace::boost::mp11;
 struct Neg {};
 
 template <typename T>
-void print(T sum) {
+void printDigit(T sum) {
     if constexpr (std::is_same_v<One, T>) {
         std::cout << "1";
     }

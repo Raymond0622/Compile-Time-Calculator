@@ -19,61 +19,86 @@
 #include "core/Divide.hpp"
 #include "core/Multiply.hpp"
 #include "core/Binary.hpp"
+#include "core/Exponent.hpp"
+#include "notation/Scientific.hpp"
 
 constexpr char ops = OPERATION[0];
 
 using namespace boost::mp11;
 
-template <typename T, size_t N>
-struct Exponent {};
-
-template <typename... D1s, template <typename...> class Number1, size_t N>
-struct Exponent<Number1<D1s...>, N> {
-    using p = typename Binary<mp_reverse<Number1<D1s...>>, false>::ans;
-    using bin = mp_reverse<typename ReconstructBinary<p>::ans>;
-};
-
-template <typename T, typename U>
-struct RecursiveExponentBuild {};
-
-template <typename B, typename Current, typename... Bs>
-struct RecursiveExponentBuild<mp_list<B, Bs...>, Current> {
-    using ans = typename Multiply<Current, mp_list<Two>, 0>::ans;
-    using final = mp_reverse<typename RecursiveAdd<ans>::ans>;
-    using ans = mp_append<std::conditional_t<std::is_same_v<B, One>, Current, mp_list<>>, RecursiveExponentBuild<mp_list<Bs...>, 
+template <typename PrintOperation, typename Notation>
+struct Print : public PrintOperation, public Notation  {
+    using Notation::printResult;
+    using PrintOperation::print;
+    static void result() {
+        print();
+        printResult();
+    }
 };
 
 
-//assume its in reverse order
-template <typename T>
-struct RecursiveMultiply {};
-
-template <typename T, typename U, typename... Remain>
-struct RecursiveMultiply<mp_list<T, U, Remain...>> {
-    using m = typename Multiply<T, U, 0>::ans;
-    using res = typename RecursiveAdd<m>::ans;
-    using ans = typename RecursiveMultiply<mp_list<res, Remain...>>::ans;
+template<typename Number1, typename Number2>
+struct PrintBinaryOperation {
+    static void print() {
+        mp_for_each<mp_reverse<Number1>>([] (auto d) {
+            printDigit(d);
+        });
+    
+        std::cout << " " << '*' << " ";
+        mp_for_each<mp_reverse<Number2>>([] (auto d) {
+            printDigit(d);
+        });
+        std::cout << " = ";
+    }
 };
 
-template <typename T>
-struct RecursiveMultiply<mp_list<T>> {
-    using ans = T;
+template<typename Number1>
+struct PrintSingletonOperation {
+    static void print() {
+        mp_for_each<mp_reverse<Number1>>([] (auto d) {
+            printDigit(d);
+        });
+        std::cout << " = ";
+    }
 };
 
+template <typename Final>
+struct Plain {
+    static bool found;
+    static int count;
+    static void printResult() {
+    mp_for_each<mp_reverse<Final>>([&](auto I) {   
+        if (ops == '/') {
+            if (count == decimal) {
+                std::cout << '.';
+            }
+            print(I);
+        }
+        else {
+            if constexpr (!std::is_same_v<decltype(I), Zero>) {
+                found = true;
+            }
+            if (found)
+                print(I);    
+        }
+        count++;    
+    });
+    }
+};
+template <typename Final>
+bool Plain<Final>::found = false;
+
+template <typename Final>
+int Plain<Final>::count = 0;
 
 int main() {
 
-    using number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
-    using number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
-    using number3 = mp_list<One, Two, Nine, Six, Zero, One>;
-    using c = typename RecursiveMultiply<mp_list<number1, number2, number3>>::ans;
-    printSingle<c>();
-    printf("\n");
-
     #if defined(MULTIPLY)
-        using ans = typename Multiply<number1, number2, 0>::ans;
-        using final = typename RecursiveAdd<ans>::ans;
-        printAll<number1, number2, final, true, true, true, -1>(ops);
+        using Number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
+        using Number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
+        using ans = typename Multiply<Number1, Number2, 0>::ans;
+        using Final = typename RecursiveAdd<ans>::ans;
+        Print<PrintBinaryOperation<Number1, Number2>, Scientific<PRECISION, Final>>::result();
     
     #elif defined(ADD)
 
@@ -128,7 +153,16 @@ int main() {
         using ans = ReconstructBinary<p>::ans;
         std::cout << "Binary of " << NUMBER1 << ": ";
         printSingle<ans>();
-   
+
+    #elif defined(EXPONENT) 
+        using f = typename Binary<mp_reverse<number2>, false>::ans;
+        using g = mp_reverse<typename ReconstructBinary<f>::ans>;
+        using d = typename Exponent<g, number1>::ans;
+        using pl = CleanBinary<d>::ans;
+        using final = RecursiveMultiply<pl>::ans;
+        std::cout << NUMBER1 << "^" << NUMBER2 << " = ";
+        printSingle<mp_reverse<final>>();
+
     #endif
 
 }
