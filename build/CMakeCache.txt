@@ -196,13 +196,19 @@ CMAKE_TAPI:FILEPATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeD
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //No help, variable specified on the command line.
+FUNCTION:UNINITIALIZED=x^2 + 2x + 1
+
+//No help, variable specified on the command line.
+NUMBER:UNINITIALIZED=123
+
+//No help, variable specified on the command line.
 NUMBER1:UNINITIALIZED=123012385721238745219375912387581927358127358243758237458712348957189273458743875284785273847528347528374857324857823947598237458937489572312
 
 //No help, variable specified on the command line.
 NUMBER2:UNINITIALIZED=51212512512512512
 
 //No help, variable specified on the command line.
-OPERATION:UNINITIALIZED=*
+OPERATION:UNINITIALIZED=r
 
 //No help, variable specified on the command line.
 PRECISION:UNINITIALIZED=10

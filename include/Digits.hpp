@@ -9,6 +9,10 @@
 
 using namespace boost::mp11;
 
+struct Neg {};
+struct Pos {};
+struct Variable {};
+
 template <size_t N>
 struct fixed_string {
     char value[N];
@@ -74,10 +78,30 @@ struct Nine : public Digit{
     using D = Nine;
     static constexpr int val = 9;
 };
+struct Power {};
 
-template <std::size_t N>
+template <int N>
 struct convertIntDigit {};
 
+template <>
+struct convertIntDigit<'^' - '0'> {
+    using D = Power;
+};
+
+template <>
+struct convertIntDigit<'+' - '0'> {
+    using D = Pos;
+};
+
+template <>
+struct convertIntDigit<'-' - '0'> {
+    using D = Neg;
+};
+
+template <>
+struct convertIntDigit<'x' - '0'> {
+    using D = Variable;
+};
 template <>
 struct convertIntDigit<0> {
     using D = Zero;

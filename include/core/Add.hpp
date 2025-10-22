@@ -64,6 +64,7 @@ template <typename... D1s, template <typename...> class Number1,
         typename... D2s, template <typename...> class Number2, typename... Ts> 
 struct RecursiveAdd<mp_list<Number1<D1s...>, Number2<D2s...>, Ts...>>{
     // utilize the fact that size of Number1 <= Number 2
+    static constexpr int decimal = -1;
     using a = mp_append<Number1<D1s...>, mp_repeat_c<mp_list<Zero>, mp_size<Number2<D2s...>>::value - mp_size<Number1<D1s...>>::value>>;
     using res = typename flatten<typename Add<a, Number2<D2s...>, Zero>::ans>::res; 
     using ans = typename RecursiveAdd<mp_list<res, Ts...>>::ans;

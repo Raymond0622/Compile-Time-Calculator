@@ -69,7 +69,7 @@ struct Plain {
     static void printResult() {
     mp_for_each<mp_reverse<Final>>([&](auto I) {   
         if (ops == '/') {
-            if (count == decimal) {
+            if (count == Final::decimal) {
                 std::cout << '.';
             }
             print(I);
@@ -91,15 +91,70 @@ bool Plain<Final>::found = false;
 template <typename Final>
 int Plain<Final>::count = 0;
 
+
+template <typename... Ts>
+struct Polynomial {
+    using type = std::tuple<Ts...>;
+};
+
+template <typename T, size_t N> 
+struct Monomial {
+    constexpr static size_t degree = N;
+    using value = T;
+};
+
+
+template <typename T, typename U>
+struct concat_index_sequence {};
+
+template <size_t... Ts, size_t... Us>
+struct concat_index_sequence<std::index_sequence<Ts...>, std::index_sequence<Us...>> {
+    using value = std::index_sequence<Ts..., Us...>;
+};
+
+template <fixed_string S, typename T>
+struct CharToMPList {};
+
+template <fixed_string S, size_t... Is>
+struct CharToMPList<S, std::index_sequence<Is...>> {
+    using polylist = mp_list<typename convertIntDigit<S.value[Is] - '0'>::D...>;
+};
+
+template <char ch, typename = void>
+struct IsPolyChar : std::false_type {};
+
+template <char ch>
+struct IsPolyChar<ch, std::void_t<decltype(convertIntDigit<ch - '0'>::D)>> : std::true_type {};
+
+template <template <char, typename> class Cond, typename T, fixed_string S>
+struct filter_indices {};
+
+template <template <char, typename> class Cond, fixed_string S, size_t... Is>
+struct filter_indices<Cond, std::index_sequence<Is...>, S> {
+    using type = typename concat_index_sequence<
+        std::conditional_t<Cond<S.value[Is], void>::value, std::index_sequence<Is>, 
+        std::index_sequence<>>...>::value;
+};
+
+template <fixed_string S>
+struct CharToPoly {
+    using indices = std::make_index_sequence<sizeof(S.value) - 1>;
+    using filtered = typename filter_indices<IsPolyChar, indices, S>::type;
+    using value = typename CharToMPList<S, filtered>::polylist;
+};
+
 int main() {
 
+    using p = typename CharToPoly<FUNCTION>::characters;
+
+    
     #if defined(MULTIPLY)
         using Number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
         using Number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
         using ans = typename Multiply<Number1, Number2, 0>::ans;
         using Final = typename RecursiveAdd<ans>::ans;
         Print<PrintBinaryOperation<Number1, Number2>, Scientific<PRECISION, Final>>::result();
-    
+        //Print<PrintBinaryOperation<Number1, Number2>, Plain<Final>>::result();
     #elif defined(ADD)
 
         constexpr size_t n1 = mp_size<number1>::value;

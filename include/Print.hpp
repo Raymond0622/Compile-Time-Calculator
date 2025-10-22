@@ -8,7 +8,6 @@
 #include <boost/mp11.hpp>
 
 using namespace::boost::mp11;
-struct Neg {};
 
 template <typename T>
 void printDigit(T sum) {
