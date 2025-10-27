@@ -104,13 +104,23 @@ struct Monomial {
 };
 
 
-template <typename T, typename U>
+template <typename... Ts>
 struct concat_index_sequence {};
 
-template <size_t... Ts, size_t... Us>
-struct concat_index_sequence<std::index_sequence<Ts...>, std::index_sequence<Us...>> {
-    using value = std::index_sequence<Ts..., Us...>;
+template <size_t... Ts>
+struct concat_index_sequence<std::index_sequence<Ts...>> {
+    using value = std::index_sequence<Ts...>;
 };
+
+template <size_t... Ts, size_t... Us, typename... Ps>
+struct concat_index_sequence<std::index_sequence<Ts...>, std::index_sequence<Us...>, Ps...> {
+    using value = typename concat_index_sequence<std::index_sequence<Ts..., Us...>, Ps...>::value;
+};
+
+template <fixed_string S, size_t I>
+consteval char char_at() {
+    return S.value[I];
+}
 
 template <fixed_string S, typename T>
 struct CharToMPList {};
@@ -120,20 +130,25 @@ struct CharToMPList<S, std::index_sequence<Is...>> {
     using polylist = mp_list<typename convertIntDigit<S.value[Is] - '0'>::D...>;
 };
 
-template <char ch, typename = void>
-struct IsPolyChar : std::false_type {};
-
 template <char ch>
-struct IsPolyChar<ch, std::void_t<decltype(convertIntDigit<ch - '0'>::D)>> : std::true_type {};
+struct IsBinaryOperation : std::bool_constant<
+    ch == '+' || ch == '-'> {};
 
-template <template <char, typename> class Cond, typename T, fixed_string S>
-struct filter_indices {};
+//SFINAE for IsPolyChar does NOT work :(
+template <char ch>
+struct IsPolyChar : std::bool_constant<
+    ch == 'x' || ch == '+' || ch == '-' || (ch - '0' <= 9 && ch - '0' >= 0) || 
+        ch == '^'>{};
 
-template <template <char, typename> class Cond, fixed_string S, size_t... Is>
+template <template <char> class Cond, typename Seq, fixed_string S>
+struct filter_indices;
+
+template <template <char> class Cond, fixed_string S, size_t... Is>
 struct filter_indices<Cond, std::index_sequence<Is...>, S> {
     using type = typename concat_index_sequence<
-        std::conditional_t<Cond<S.value[Is], void>::value, std::index_sequence<Is>, 
-        std::index_sequence<>>...>::value;
+        std::conditional_t<Cond<S.value[Is]>::value,
+            std::index_sequence<Is>, std::index_sequence<>>...
+    >::value;
 };
 
 template <fixed_string S>
@@ -143,11 +158,29 @@ struct CharToPoly {
     using value = typename CharToMPList<S, filtered>::polylist;
 };
 
+template <fixed_string, typename... >
+struct getindex {};
+
+template <size_t... Idx, fixed_string S>
+struct getindex<S, std::index_sequence<Idx...>> {
+    static void printindex() {
+        ((std::cout << S.value[Idx]), ...);
+    }
+};
+
+template <fixed_string S>
+struct CharToMono {
+    using indices = std::make_index_sequence<sizeof(S.value) - 1>;
+    using filtered = typename filter_indices<IsPolyChar, indices, S>::type;
+    using value = typename CharToMPList<S, filtered>::polylist;
+}
+
+
 int main() {
+    fixed_string s(FUNCTION);
+    using p = CharToPoly<FUNCTION>;
+    getindex<FUNCTION, typename p::filtered>::printindex();
 
-    using p = typename CharToPoly<FUNCTION>::characters;
-
-    
     #if defined(MULTIPLY)
         using Number1 = mp_reverse<typename CharToDigit<NUMBER1>::digits>;
         using Number2 = mp_reverse<typename CharToDigit<NUMBER2>::digits>;
