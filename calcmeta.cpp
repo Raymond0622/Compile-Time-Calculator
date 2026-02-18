@@ -36,7 +36,6 @@ struct Print : public PrintOperation, public Notation  {
     }
 };
 
-
 template<typename Number1, typename Number2>
 struct PrintBinaryOperation {
     static void print() {
@@ -97,12 +96,12 @@ struct Polynomial {
     using type = std::tuple<Ts...>;
 };
 
-template <typename T, size_t N> 
+template <typename T, typename U, size_t N> 
 struct Monomial {
     constexpr static size_t degree = N;
-    using value = T;
+    using sign = T;
+    using value = U;
 };
-
 
 template <typename... Ts>
 struct concat_index_sequence {};
@@ -167,14 +166,34 @@ struct getindex<S, std::index_sequence<Idx...>> {
         ((std::cout << S.value[Idx]), ...);
     }
 };
+// takes in mp_list of already filtered char's , filtered chars are
+// chars that only have polynomial valid characters
+// probably need to filter once more to separate out monomials
+template <typename T, typename U>
+struct getMonomialIndices {};
+
+// this contains list of start of monomials
+template <typename T, typename... Ts, size_t... Idx>
+struct get getMonomialIndices<mp_list<T, Ts...>, std::index_sequnce<Idx...>> {
+    using value = typename concat_index_sequence<std::conditional_t<std::is_same_v<T, Neg> || std::is_same_v<T, Pos>, 
+        std::index_sequence<Idx>, std::index_sequence<>>...>::value;
+}
+template <typename T>
+struct CharToMonoList {};
+
+template <typename T, typename... Ts>
+struct CharToMonoList<mp_list<T, Ts...>> {
+    using indices = typename getMonomialIndices::value;
+    
+}
 
 template <fixed_string S>
 struct CharToMono {
     using indices = std::make_index_sequence<sizeof(S.value) - 1>;
     using filtered = typename filter_indices<IsPolyChar, indices, S>::type;
     using value = typename CharToMPList<S, filtered>::polylist;
-}
-
+    using mono_list = CharToMonoList<value>::value;
+};
 
 int main() {
     fixed_string s(FUNCTION);
