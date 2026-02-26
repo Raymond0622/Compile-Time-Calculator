@@ -206,10 +206,19 @@ struct CharToMonoPairList<mp_list<Ts...>> {
 template <typename T, typename U>
 struct MonomialIndicesToMonomial {};
 
-template <typename T, typename... Ts, size_t... Idx>
+template <typename T, typename... Ts, size_t Idx, size_t... Idx>
 struct MonomialIndicesToMonomial<mp_list<T, Ts...>, std::index_sequence<Idxs...>> {
-    using mono = MonomialConstructor<mp_list<Ts...>, Idxs>;
+    using mono = MonomialConstructor<mp_list<Ts...>, Idx>;
 };
+
+struct MonomialList {
+    using value = mp_list<PartialMPList<
+}
+
+template <typename... Ts, size Idx>
+struct PartialMPList<mp_list<Ts...>, Idx> {
+   using value = mp_list<std::conditional_t<Idx >= 0, Ts, mp_list<>>...>;
+}
 
 // used to construct Monomial struct
 // need the sign, coefficient, and power
