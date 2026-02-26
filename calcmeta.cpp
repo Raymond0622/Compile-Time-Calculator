@@ -170,29 +170,78 @@ struct getindex<S, std::index_sequence<Idx...>> {
 // chars that only have polynomial valid characters
 // probably need to filter once more to separate out monomials
 template <typename T, typename U>
-struct getMonomialIndices {};
+struct MonomialIndices {};
 
 // this contains list of start of monomials
 template <typename T, typename... Ts, size_t... Idx>
-struct get getMonomialIndices<mp_list<T, Ts...>, std::index_sequnce<Idx...>> {
-    using value = typename concat_index_sequence<std::conditional_t<std::is_same_v<T, Neg> || std::is_same_v<T, Pos>, 
+struct MonomialIndices<mp_list<T, Ts...>, std::index_sequence<Idx...>> {
+    using head = typename concat_index_sequence<std::conditional_t<std::is_same_v<T, Neg> || std::is_same_v<T, Pos>, 
         std::index_sequence<Idx>, std::index_sequence<>>...>::value;
-}
+    using value = typename concat_index_sequence<head, std::index_sequence<1 + sizeof...(Ts)>>::value;
+};
+
 template <typename T>
-struct CharToMonoList {};
+struct AdjacentDistance {};
+
+template <size_t Idx1, size_t Idx2, size_t... Idx>
+struct AdjacentDistance<std::index_sequence<Idx1, Idx2, Idx...>> {
+    using value = typename concat_index_sequence<std::index_sequence<Idx2 - Idx1 - 1>,
+        typename AdjacentDistance<std::index_sequence<Idx2, Idx...>>::value>::value;
+};
+
+template <size_t Idx>
+struct AdjacentDistance<std::index_sequence<Idx>> {
+    using value = std::index_sequence<>;
+};
+
+template <typename T>
+struct CharToMonoPairList {};
+
+template <typename... Ts>
+struct CharToMonoPairList<mp_list<Ts...>> {
+    using indices = typename MonomialIndices<mp_list<Ts...>, std::make_index_sequence<sizeof...(Ts)>>::value;
+    using dist = typename AdjacentDistance<indices>::value;
+};
+
+template <typename T, typename U>
+struct MonomialIndicesToMonomial {};
+
+template <typename T, typename... Ts, size_t... Idx>
+struct MonomialIndicesToMonomial<mp_list<T, Ts...>, std::index_sequence<Idxs...>> {
+    using mono = MonomialConstructor<mp_list<Ts...>, Idxs>;
+};
+
+// used to construct Monomial struct
+// need the sign, coefficient, and power
+struct MonomialConstructor {
+    using sign = T;
+    using coef = MonoCoefficient<mp_list<Ts...>>::value;
+    using power = MonoPower<mp_list<Ts...>>::value;
+}
+
+template <typename T>
+struct MonoPower {};
+
+template <typename... Ts>
+struct MonoPower<mp_list<Ts...>> {
+    using value = std::conditional_t<std::is_same_v<Variable, T1> && std::is_same_v<Power, T2>, 
+        mp_list<Ts...>, typename MonoPowerMPList<T2, Ts...>::value;
+};
+
+template <typename D>
+struct isDigit : std::bool_constant<D::val >= 0 && D::val <= 9> {};
 
 template <typename T, typename... Ts>
-struct CharToMonoList<mp_list<T, Ts...>> {
-    using indices = typename getMonomialIndices::value;
-    
-}
+struct MonomialCoefficient<mp_list<T, Ts...> {
+    using value = flatten<mp_list<std::conditional_t<isDigit<T>::value, 
+        mp_list<T, typename MonomialCoefficient<mp_list<Ts...>>::value>, mp_list<>>>::res;
+};
 
 template <fixed_string S>
 struct CharToMono {
     using indices = std::make_index_sequence<sizeof(S.value) - 1>;
     using filtered = typename filter_indices<IsPolyChar, indices, S>::type;
     using value = typename CharToMPList<S, filtered>::polylist;
-    using mono_list = CharToMonoList<value>::value;
 };
 
 int main() {
